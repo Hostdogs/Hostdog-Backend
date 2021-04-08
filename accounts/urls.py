@@ -6,5 +6,6 @@ app_name = 'accounts'
 
 router = DefaultRouter()
 router.register('account', AccountsViewSet)
+
 urlpatterns = router.urls
 
