@@ -22,11 +22,24 @@ class Accounts(AbstractUser):
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today())
 
-
     def __str__(self):
         return self.username
 
 
+class Dog(models.Model):
+    customer_id = models.ForeignKey(Customer,on_delete=models.CASCADE)
+    dog_name = models.CharField(max_length=50)
+    dog_bio = TextField(max_length=100)
+    dog_status = models.CharField(max_length=20)
+    dog_create_date = models.DateField(auto_now_add=True)
+    dog_dob = models.DateField(default=datetime.date.today())
+    dog_breed = models.CharField(max_length=20)
+    dog_weight = models.FloatField(max_length=6)
+
+    def __str__(self):
+        return self.dog_name
+    
+    
 class Host(models.Model):
     """
     Host profile model
@@ -57,3 +70,4 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.account_id
+

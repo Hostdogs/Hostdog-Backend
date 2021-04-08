@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from accounts.models import Accounts, Customer, Host
+from accounts.models import Accounts, Customer, Host, Dog
+
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -26,6 +27,14 @@ class AccountSerializer(serializers.ModelSerializer):
         account = Accounts.objects.create_user(**validated_data)
         return account
 
+
+class DogSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Dog
+        fields = ("id","customer_id","dog_name","dog_dob","dog_breed","dog_weight","dog_bio")
+        extra_kwargs = {"dog_name":required=True}
+        
 
 class CustomerSerializer(serializers.ModelSerializer):
     """
@@ -61,3 +70,4 @@ class HostSerializer(serializers.ModelSerializer):
             "host_area",
             "host_schedule",
         )
+

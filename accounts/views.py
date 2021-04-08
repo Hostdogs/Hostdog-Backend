@@ -3,6 +3,7 @@ from accounts.models import Accounts, Customer, Host
 from rest_framework import generics, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from accounts.models import Dog
 
 
 class AccountsViewSet(viewsets.ModelViewSet):
@@ -11,6 +12,11 @@ class AccountsViewSet(viewsets.ModelViewSet):
     """
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
+
+
+class DogViewSet(viewsets.ModelViewSet):
+    queryset = Dog.objects.all()
+    serializer_class = DogSerializer
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -41,3 +47,4 @@ class HostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.queryset
+
