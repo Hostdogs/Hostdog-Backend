@@ -33,7 +33,11 @@ class DogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dog
         fields = ("id","customer_id","dog_name","dog_dob","dog_breed","dog_weight","dog_bio")
-        extra_kwargs = {"dog_name":required=True}
+        
+        extra_kwargs = {
+            "dog_name":{"required":True},
+        
+        }
         
 
 class CustomerSerializer(serializers.ModelSerializer):

@@ -1,4 +1,4 @@
-from accounts.serializers import AccountSerializer, CustomerSerializer, HostSerializer
+from accounts.serializers import AccountSerializer, CustomerSerializer, HostSerializer,DogSerializer
 from accounts.models import Accounts, Customer, Host
 from rest_framework import generics, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -30,8 +30,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         item = self.kwargs.get("pk")
         return generics.get_object_or_404(Customer, id=item)
 
-    def get_queryset(self):
-        return self.queryset
+    
 
 
 class HostViewSet(viewsets.ModelViewSet):
@@ -45,6 +44,5 @@ class HostViewSet(viewsets.ModelViewSet):
         item = self.kwargs.get("pk")
         return generics.get_object_or_404(Host, id=item)
 
-    def get_queryset(self):
-        return self.queryset
+    
 
