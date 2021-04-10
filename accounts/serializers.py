@@ -1,3 +1,4 @@
+from django.db.models.query import InstanceCheckMeta
 from rest_framework import serializers
 from accounts.models import Accounts, Customer, Host, Dog
 
@@ -7,7 +8,6 @@ class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
-
     class Meta:
         model = Accounts
         fields = (
@@ -77,3 +77,11 @@ class HostSerializer(serializers.ModelSerializer):
             "host_schedule",
         )
 
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint
+    """
+    model = Accounts
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
