@@ -1,16 +1,19 @@
 from django.db import models
 import datetime
-from django.utils.translation import gettext_lazy 
+from django.utils.translation import gettext_lazy
 from django.contrib.auth.models import (
     AbstractUser,
 )
+
 # Create your models here.
+
 
 class Accounts(AbstractUser):
     """
     Authenticaton user model
         - Authen with username & password
     """
+
     options = (
         ("customer", "Customer"),
         ("host", "Host"),
@@ -23,13 +26,13 @@ class Accounts(AbstractUser):
     def __str__(self):
         return self.username
 
-    
-    
+
 class Host(models.Model):
     """
     Host profile model
         -store host info about hostdog
     """
+
     account_id = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     host_bio = models.TextField(max_length=100)
     host_rating = models.FloatField(max_length=3)
@@ -48,6 +51,7 @@ class Customer(models.Model):
     Customer profile model
         -store customer info about hostdog
     """
+
     account_id = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     customer_bio = models.TextField(max_length=100)
     customer_dog_count = models.IntegerField()
@@ -56,12 +60,14 @@ class Customer(models.Model):
     def __str__(self):
         return str(self.account_id)
 
+
 class Dog(models.Model):
     """
     Dog profile  model
         -store dog info
     """
-    customer_id = models.ForeignKey(Customer,on_delete=models.CASCADE)
+
+    customer_id = models.ForeignKey(Customer, on_delete=models.CASCADE)
     dog_name = models.CharField(max_length=50)
     dog_bio = models.TextField(max_length=100)
     dog_status = models.CharField(max_length=20)
@@ -72,4 +78,3 @@ class Dog(models.Model):
 
     def __str__(self):
         return self.dog_name
-

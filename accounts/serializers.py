@@ -1,13 +1,12 @@
-from django.db.models.query import InstanceCheckMeta
 from rest_framework import serializers
 from accounts.models import Accounts, Customer, Host, Dog
-
 
 
 class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
+
     class Meta:
         model = Accounts
         fields = (
@@ -28,19 +27,37 @@ class AccountSerializer(serializers.ModelSerializer):
         return account
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint
+    """
+
+    model = Accounts
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
 class DogSerializer(serializers.ModelSerializer):
     """
     Serializer for dog model
     """
+
     class Meta:
         model = Dog
-        fields = ("id","customer_id","dog_name","dog_dob","dog_breed","dog_weight","dog_bio")
-        
+        fields = (
+            "id",
+            "customer_id",
+            "dog_name",
+            "dog_dob",
+            "dog_breed",
+            "dog_weight",
+            "dog_bio",
+        )
+
         extra_kwargs = {
-            "dog_name":{"required":True},
-        
+            "dog_name": {"required": True},
         }
-        
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     """
@@ -76,12 +93,3 @@ class HostSerializer(serializers.ModelSerializer):
             "host_area",
             "host_schedule",
         )
-
-
-class ChangePasswordSerializer(serializers.Serializer):
-    """
-    Serializer for password change endpoint
-    """
-    model = Accounts
-    old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
