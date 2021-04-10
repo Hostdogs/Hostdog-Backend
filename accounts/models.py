@@ -65,6 +65,10 @@ class Customer(models.Model):
         return str(self.account_id)
 
 class Dog(models.Model):
+    """
+    Dog profile model
+        -store dog info 
+    """
     customer = models.ForeignKey(Customer, to_field="account" , on_delete=models.CASCADE)
     dog_name = models.CharField(max_length=50)
     dog_bio = models.TextField(max_length=100)
