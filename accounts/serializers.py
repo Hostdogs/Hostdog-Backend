@@ -114,8 +114,6 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "customer_hosted_count",
         )
 
-    # def create(self, validated_data):
-    #     return 
 
     
 
@@ -138,8 +136,6 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_schedule",
         )
 
-    # def create(self, validated_data):
-    #     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class DogProfileSerializer(serializers.ModelSerializer):
