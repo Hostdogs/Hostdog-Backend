@@ -6,7 +6,7 @@ from accounts.serializers import (
     ChangePasswordSerializer,
 )
 from accounts.models import Accounts, Customer, Host
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, viewsets, status, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import Dog
@@ -48,7 +48,6 @@ class AccountsViewSet(viewsets.ModelViewSet):
             )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class DogViewSet(viewsets.ModelViewSet):
     """
