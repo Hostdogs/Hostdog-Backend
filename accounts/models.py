@@ -1,11 +1,11 @@
 from django.db import models
 import datetime
-from django.utils.translation import gettext_lazy 
+from django.utils.translation import gettext_lazy
 from django.contrib.auth.models import (
     AbstractUser,
 )
-# Create your models here.
 
+# Create your models here.
 
 
 class Accounts(AbstractUser):
@@ -13,6 +13,7 @@ class Accounts(AbstractUser):
     Authenticaton user model
         - Authen with username & password
     """
+    
     is_host = models.BooleanField(default=False)
     is_customer = models.BooleanField(default=False)
     address = models.CharField(max_length=255, blank=True)
@@ -22,8 +23,7 @@ class Accounts(AbstractUser):
     def __str__(self):
         return self.username
 
-    
-    
+
 class Host(models.Model):
     """
     Host profile model
@@ -55,6 +55,7 @@ class Customer(models.Model):
     def __str__(self):
         return str(self.account_id)
 
+
 class Dog(models.Model):
     customer = models.ForeignKey(Customer,on_delete=models.CASCADE)
     dog_name = models.CharField(max_length=50)
@@ -67,4 +68,3 @@ class Dog(models.Model):
 
     def __str__(self):
         return self.dog_name
-

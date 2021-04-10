@@ -1,12 +1,12 @@
+
 from rest_framework import serializers
 from accounts.models import Accounts, Customer, Host, Dog
 from rest_framework.response import Response
 from rest_framework import status
 
-
 class AccountSerializer(serializers.ModelSerializer):
     """
-    Serializer for account
+    Serializer for account model
     """
     class Meta:
         model = Accounts
@@ -31,6 +31,15 @@ class AccountSerializer(serializers.ModelSerializer):
         account = Accounts.objects.create_user(**validated_data)
         return account
 
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint
+    """
+
+    model = Accounts
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
 
 class CustomerAccountSerializer(serializers.ModelSerializer):
@@ -93,7 +102,7 @@ class HostAccountSerializer(serializers.ModelSerializer):
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
-    Serializer for customer
+    Serializer for customer model
     """
 
     class Meta:
@@ -105,15 +114,15 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "customer_hosted_count",
         )
 
-    def create(self, validated_data):
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    # def create(self, validated_data):
+    #     return 
 
     
 
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
-    Serializer for host
+    Serializer for host model
     """
 
     class Meta:
@@ -129,8 +138,8 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_schedule",
         )
 
-    def create(self, validated_data):
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    # def create(self, validated_data):
+    #     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class DogProfileSerializer(serializers.ModelSerializer):
