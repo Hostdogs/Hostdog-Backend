@@ -15,6 +15,9 @@ class AccountsViewSet(viewsets.ModelViewSet):
 
 
 class DogViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for query dog
+    """
     queryset = Dog.objects.all()
     serializer_class = DogSerializer
 

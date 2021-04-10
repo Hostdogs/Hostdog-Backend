@@ -6,8 +6,6 @@ from django.contrib.auth.models import (
 )
 # Create your models here.
 
-
-
 class Accounts(AbstractUser):
     """
     Authenticaton user model
@@ -59,6 +57,10 @@ class Customer(models.Model):
         return str(self.account_id)
 
 class Dog(models.Model):
+    """
+    Dog profile  model
+        -store dog info
+    """
     customer_id = models.ForeignKey(Customer,on_delete=models.CASCADE)
     dog_name = models.CharField(max_length=50)
     dog_bio = models.TextField(max_length=100)

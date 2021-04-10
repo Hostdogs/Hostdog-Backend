@@ -5,7 +5,7 @@ from accounts.models import Accounts, Customer, Host, Dog
 
 class AccountSerializer(serializers.ModelSerializer):
     """
-    Serializer for account
+    Serializer for account model
     """
 
     class Meta:
@@ -29,7 +29,9 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class DogSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer for dog model
+    """
     class Meta:
         model = Dog
         fields = ("id","customer_id","dog_name","dog_dob","dog_breed","dog_weight","dog_bio")
@@ -42,7 +44,7 @@ class DogSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     """
-    Serializer for customer
+    Serializer for customer model
     """
 
     class Meta:
@@ -58,7 +60,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class HostSerializer(serializers.ModelSerializer):
     """
-    Serializer for host
+    Serializer for host model
     """
 
     class Meta:
