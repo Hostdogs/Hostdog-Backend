@@ -1,12 +1,13 @@
 from accounts.serializers import (
     AccountSerializer,
-    CustomerSerializer,
-    HostSerializer,
-    DogSerializer,
+    CustomerProfileSerializer,
+    HostProfileSerializer,
+    DogProfileSerializer,
     ChangePasswordSerializer,
+    UpdateAccountSerializer,
 )
 from accounts.models import Accounts, Customer, Host
-from rest_framework import generics, viewsets, status, mixins
+from rest_framework import generics, viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import Dog
@@ -49,36 +50,48 @@ class AccountsViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class DogViewSet(viewsets.ModelViewSet):
+    def update(self, request, *args, **kwargs):
+        """
+        Override update method
+        """
+        instance = self.get_object()
+        serializer = UpdateAccountSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class DogProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query dog
     """
 
     queryset = Dog.objects.all()
-    serializer_class = DogSerializer
+    serializer_class = DogProfileSerializer
 
 
-class CustomerViewSet(viewsets.ModelViewSet):
+class CustomerProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query customer
     """
 
     queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+    serializer_class = CustomerProfileSerializer
+    http_method_names = ("get", "put", "patch", "head", "options")
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
-        return generics.get_object_or_404(Customer, id=item)
+        return generics.get_object_or_404(Customer, account=item)
 
 
-class HostViewSet(viewsets.ModelViewSet):
+class HostProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query host
     """
 
     queryset = Host.objects.all()
-    serializer_class = HostSerializer
+    serializer_class = HostProfileSerializer
+    http_method_names = ("get", "put", "patch", "head", "options")
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
-        return generics.get_object_or_404(Host, id=item)
+        return generics.get_object_or_404(Host, account=item)
