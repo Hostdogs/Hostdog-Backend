@@ -38,4 +38,10 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(Accounts, CustomUserAdmin)
 admin.site.register(Customer)
 admin.site.register(Host)
+
+
+class DogAdmin(admin.ModelAdmin):
+    list_filter = ('customer')
+
 admin.site.register(Dog)
+

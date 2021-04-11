@@ -16,6 +16,7 @@ Including another URLconf
 
 
 from accounts.models import Accounts
+from service.models import Service
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
@@ -34,4 +35,5 @@ urlpatterns = [
         name="openapi-schema",
     ),
     path("", include_docs_urls(title="Hostdog-API")),
+    path('api/service/', include('service.urls')),
 ]

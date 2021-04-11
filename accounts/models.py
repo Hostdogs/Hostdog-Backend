@@ -61,7 +61,7 @@ class Host(models.Model):
     dob = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return str(self.account_id)
+        return str(self.account)
 
 
 class Customer(models.Model):
@@ -88,7 +88,7 @@ class Customer(models.Model):
     dob = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return str(self.account_id)
+        return str(self.account)
 
 
 class Dog(models.Model):
