@@ -6,15 +6,16 @@ from accounts.serializers import (
     ChangePasswordSerializer,
 )
 from accounts.models import Accounts, Customer, Host
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, mixins, viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import Dog
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 
-class AccountsViewSet(viewsets.ModelViewSet):
+class AccountsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query account
     """
