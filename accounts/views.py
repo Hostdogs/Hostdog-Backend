@@ -21,7 +21,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
 
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
-    http_method_names = ("get", "head", "options")
+    http_method_names = ("post","get", "head", "options")
 
     @action(
         methods=["post"],
