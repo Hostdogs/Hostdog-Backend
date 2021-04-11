@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from accounts.models import Accounts, Customer, Host, Dog
-from rest_framework.response import Response
-from rest_framework import status
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -77,6 +75,9 @@ class HostProfileSerializer(serializers.ModelSerializer):
 
 
 class DogProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for dog model
+    """
     class Meta:
         model = Dog
         fields = (
@@ -95,6 +96,9 @@ class DogProfileSerializer(serializers.ModelSerializer):
 
 
 class UpdateAccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for update account detail
+    """
     class Meta:
         model = Accounts
         fields = (
