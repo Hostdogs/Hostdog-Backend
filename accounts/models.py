@@ -1,6 +1,6 @@
 from django.db import models
 import datetime
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import (
     AbstractUser,
 )
@@ -15,9 +15,8 @@ class Accounts(AbstractUser):
     """
 
     is_host = models.BooleanField(default=False)
-    address = models.CharField(max_length=255, blank=True)
-    mobile = models.CharField(max_length=10, blank=True)
-    dob = models.DateField(default=datetime.date.today)
+    first_name = None
+    last_name = None
 
     def save(self, *args, **kwargs):
         """
@@ -48,6 +47,11 @@ class Host(models.Model):
     host_avaliable = models.IntegerField(default=0)
     host_area = models.FloatField(default=0.0)
     host_schedule = models.TextField(max_length=255, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    mobile = models.CharField(max_length=10, blank=True)
+    dob = models.DateField(default=datetime.date.today)
+    first_name = models.CharField(max_length=30, default="")
+    last_name = models.CharField(max_length=30, default="")
 
     def __str__(self):
         return str(self.account_id)
@@ -62,6 +66,11 @@ class Customer(models.Model):
     customer_bio = models.TextField(max_length=100, blank=True)
     customer_dog_count = models.IntegerField(default=0)
     customer_hosted_count = models.IntegerField(default=0)
+    address = models.CharField(max_length=255, blank=True)
+    mobile = models.CharField(max_length=10, blank=True)
+    dob = models.DateField(default=datetime.date.today)
+    first_name = models.CharField(max_length=30, default="")
+    last_name = models.CharField(max_length=30, default="")
 
     def __str__(self):
         return str(self.account_id)

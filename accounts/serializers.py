@@ -17,9 +17,6 @@ class AccountSerializer(serializers.ModelSerializer):
             "password",
             "first_name",
             "last_name",
-            "dob",
-            "mobile",
-            "address",
         )
         extra_kwargs = {
             "password": {"write_only": True},
@@ -51,6 +48,9 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "customer_bio",
             "customer_dog_count",
             "customer_hosted_count",
+            "address",
+            "mobile",
+            "dob"
         )
 
 
@@ -70,6 +70,9 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_avaliable",
             "host_area",
             "host_schedule",
+            "address",
+            "mobile",
+            "dob"
         )
 
 
