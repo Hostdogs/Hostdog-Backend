@@ -32,14 +32,17 @@ class Accounts(AbstractUser):
 
     def __str__(self):
         return self.username
-
-
+        
 class Host(models.Model):
     """
     Host profile model
         -store host info about hostdog
     """
-    account = models.OneToOneField(Accounts, on_delete=models.CASCADE,primary_key=True)
+
+    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
+    picture = models.ImageField(
+        verbose_name=_("Host's image"), upload_to="host/", blank=True
+    )
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
     host_bio = models.TextField(max_length=100, blank=True)
@@ -62,7 +65,11 @@ class Customer(models.Model):
     Customer profile model
         -store customer info about hostdog
     """
+
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
+    picture = models.ImageField(
+        verbose_name=_("Customer's image"), upload_to="customer/", blank=True
+    )
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
     customer_bio = models.TextField(max_length=100, blank=True)
@@ -75,12 +82,17 @@ class Customer(models.Model):
     def __str__(self):
         return str(self.account_id)
 
+
 class Dog(models.Model):
     """
     Dog profile model
-        -store dog info 
+        -store dog info
     """
+
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    picture = models.ImageField(
+        verbose_name=_("Dog's image"), upload_to="dog/", blank=True
+    )
     dog_name = models.CharField(max_length=50)
     dog_bio = models.TextField(max_length=100)
     dog_status = models.CharField(max_length=20)

@@ -43,6 +43,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = (
+            "picture",
             "first_name",
             "last_name",
             "customer_bio",
@@ -62,6 +63,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Host
         fields = (
+            "picture",
             "first_name",
             "last_name",
             "host_bio",
@@ -85,6 +87,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
         model = Dog
         fields = (
             "customer",
+            "picture",
             "dog_name",
             "dog_dob",
             "dog_breed",
