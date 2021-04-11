@@ -80,7 +80,7 @@ class Dog(models.Model):
     Dog profile model
         -store dog info 
     """
-    customer = models.ForeignKey(Customer, to_field="account" , on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     dog_name = models.CharField(max_length=50)
     dog_bio = models.TextField(max_length=100)
     dog_status = models.CharField(max_length=20)
