@@ -16,6 +16,7 @@ Including another URLconf
 
 
 from accounts.models import Accounts
+from service.models import Service
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.authtoken.views import obtain_auth_token
@@ -25,5 +26,6 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',TemplateView.as_view(template_name='index.html')),
-    path('api/', include('accounts.urls', namespace='accounts'))
+    path('api/', include('accounts.urls', namespace='accounts')),
+    path('api/service/', include('service.urls')),
 ]

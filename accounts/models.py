@@ -39,7 +39,7 @@ class Host(models.Model):
     host_schedule = models.TextField(max_length=255, blank=True)
 
     def __str__(self):
-        return str(self.account_id)
+        return str(self.account)
 
 
 class Customer(models.Model):
@@ -53,7 +53,7 @@ class Customer(models.Model):
     customer_hosted_count = models.IntegerField(default=0)
 
     def __str__(self):
-        return str(self.account_id)
+        return str(self.account)
 
 
 class Dog(models.Model):
