@@ -11,7 +11,6 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Accounts
         fields = (
             "id",
-            "is_customer",
             "is_host",
             "username",
             "email",

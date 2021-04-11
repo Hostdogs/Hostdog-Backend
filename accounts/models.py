@@ -15,18 +15,20 @@ class Accounts(AbstractUser):
     """
 
     is_host = models.BooleanField(default=False)
-    is_customer = models.BooleanField(default=False)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
 
     def save(self, *args, **kwargs):
+        """
+        Create Host or customer profile on save of account to database
+        """
         created = not self.pk
         super(Accounts, self).save(*args, **kwargs)
         if created:
             if self.is_host:
                 Host.objects.create(account=self)
-            elif self.is_customer:
+            else:
                 Customer.objects.create(account=self)
 
     def __str__(self):
