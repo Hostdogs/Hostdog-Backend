@@ -11,16 +11,10 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Accounts
         fields = (
             "id",
-            "is_customer",
             "is_host",
             "username",
             "email",
             "password",
-            "first_name",
-            "last_name",
-            "dob",
-            "mobile",
-            "address",
         )
         extra_kwargs = {
             "password": {"write_only": True},
@@ -49,9 +43,15 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = (
+            "picture",
+            "first_name",
+            "last_name",
             "customer_bio",
             "customer_dog_count",
             "customer_hosted_count",
+            "address",
+            "mobile",
+            "dob"
         )
 
 
@@ -63,7 +63,9 @@ class HostProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Host
         fields = (
-            "account",
+            "picture",
+            "first_name",
+            "last_name",
             "host_bio",
             "host_rating",
             "host_hosted_count",
@@ -71,6 +73,9 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_avaliable",
             "host_area",
             "host_schedule",
+            "address",
+            "mobile",
+            "dob"
         )
 
 
@@ -81,8 +86,8 @@ class DogProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dog
         fields = (
-            "id",
-            "customer_id",
+            "customer",
+            "picture",
             "dog_name",
             "dog_dob",
             "dog_breed",
@@ -93,18 +98,3 @@ class DogProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "dog_name": {"required": True},
         }
-
-
-class UpdateAccountSerializer(serializers.ModelSerializer):
-    """
-    Serializer for update account detail
-    """
-    class Meta:
-        model = Accounts
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "mobile",
-            "address",
-        )
