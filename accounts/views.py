@@ -1,21 +1,21 @@
 from accounts.serializers import (
     AccountSerializer,
-    CustomerAccountSerializer, 
-    HostAccountSerializer, 
-    HostProfileSerializer,
     CustomerProfileSerializer,
+    HostProfileSerializer,
     DogProfileSerializer,
-    ChangePasswordSerializer)
-from accounts.models import Accounts, Customer, Host,Dog
+    ChangePasswordSerializer,
+    UpdateAccountSerializer,
+)
+from accounts.models import Accounts, Customer, Host
 from rest_framework import generics, viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from accounts.models import Dog
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 
-
-class AccountViewSet(viewsets.ModelViewSet):
+class AccountsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query account
     """
@@ -48,22 +48,25 @@ class AccountViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CustomerAccountViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for query account
-    """
-    queryset = Accounts.objects.filter(is_customer=True)
-    serializer_class = CustomerAccountSerializer
+    def update(self, request, *args, **kwargs):
+        """
+        Override update method
+        """
+        instance = self.get_object()
+        serializer = UpdateAccountSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
-class HostAccountViewSet(viewsets.ModelViewSet):
+class DogProfileViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for query account
+    API endpoint for query dog
     """
-    queryset = Accounts.objects.filter(is_host=True)
-    serializer_class = HostAccountSerializer
 
+    queryset = Dog.objects.all()
+    serializer_class = DogProfileSerializer
 
 
 class CustomerProfileViewSet(viewsets.ModelViewSet):
@@ -73,12 +76,11 @@ class CustomerProfileViewSet(viewsets.ModelViewSet):
 
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
+    http_method_names = ("get", "put", "patch", "head", "options")
 
-    http_method_names = ('put','get')
-    
-    # def get_object(self, queryset=None, **kwargs):
-    #     item = self.kwargs.get("pk")
-    #     return generics.get_object_or_404(Customer, id=item)
+    def get_object(self, queryset=None, **kwargs):
+        item = self.kwargs.get("pk")
+        return generics.get_object_or_404(Customer, account=item)
 
 
 class HostProfileViewSet(viewsets.ModelViewSet):
@@ -88,12 +90,8 @@ class HostProfileViewSet(viewsets.ModelViewSet):
 
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
+    http_method_names = ("get", "put", "patch", "head", "options")
 
-    # def get_object(self, queryset=None, **kwargs):
-    #     item = self.kwargs.get("pk")
-    #     return generics.get_object_or_404(Host, id=item)
-
-
-class DogProfileViewSet(viewsets.ModelViewSet):
-    queryset = Dog.objects.all()
-    serializer_class = DogProfileSerializer
+    def get_object(self, queryset=None, **kwargs):
+        item = self.kwargs.get("pk")
+        return generics.get_object_or_404(Host, account=item)

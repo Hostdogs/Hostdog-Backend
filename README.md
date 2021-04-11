@@ -1,2 +1,2 @@
-# Hostdog-Backend
-Backend of Hostdog
+# 🔫 Hostdog-Backend 💻
+* Backend of Hostdog

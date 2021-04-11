@@ -1,13 +1,12 @@
-
 from rest_framework import serializers
 from accounts.models import Accounts, Customer, Host, Dog
-from rest_framework.response import Response
-from rest_framework import status
+
 
 class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
+
     class Meta:
         model = Accounts
         fields = (
@@ -25,7 +24,7 @@ class AccountSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             "password": {"write_only": True},
-            }
+        }
 
     def create(self, validated_data):
         account = Accounts.objects.create_user(**validated_data)
@@ -42,64 +41,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 
-class CustomerAccountSerializer(serializers.ModelSerializer):
-    """
-    Serializer for account
-    """
-    class Meta:
-        model = Accounts
-        fields = (
-            "id",
-            "username",
-            "email",
-            "password",
-            "first_name",
-            "last_name",
-            "dob",
-            "mobile",
-            "address",
-        )
-        extra_kwargs = {
-            "password": {"write_only": True},
-            }
-
-    def create(self, validated_data):
-        validated_data['is_customer'] = True
-        account = Accounts.objects.create_user(**validated_data)
-        Customer.objects.create(account=account)
-        return account
-
-class HostAccountSerializer(serializers.ModelSerializer):
-    """
-    Serializer for account
-    """
-    class Meta:
-        model = Accounts
-        fields = (
-            "id",
-            "username",
-            "email",
-            "password",
-            "first_name",
-            "last_name",
-            "dob",
-            "mobile",
-            "address",
-        )
-        extra_kwargs = {
-            "password": {"write_only": True},
-        
-            }
-
-    def create(self, validated_data):
-        validated_data['is_host'] = True
-        account = Accounts.objects.create_user(**validated_data)
-        Host.objects.create(account=account)
-        return account
-        
-
-
-
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for customer model
@@ -108,14 +49,10 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = (
-            "account",
             "customer_bio",
             "customer_dog_count",
             "customer_hosted_count",
         )
-
-
-    
 
 
 class HostProfileSerializer(serializers.ModelSerializer):
@@ -137,14 +74,37 @@ class HostProfileSerializer(serializers.ModelSerializer):
         )
 
 
-
 class DogProfileSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer for dog model
+    """
     class Meta:
         model = Dog
-        fields = ("id","customer","dog_name","dog_dob","dog_breed","dog_weight","dog_bio")
-        
+        fields = (
+            "id",
+            "customer_id",
+            "dog_name",
+            "dog_dob",
+            "dog_breed",
+            "dog_weight",
+            "dog_bio",
+        )
+
         extra_kwargs = {
-            "dog_name":{"required":True},
-        
+            "dog_name": {"required": True},
         }
+
+
+class UpdateAccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for update account detail
+    """
+    class Meta:
+        model = Accounts
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "mobile",
+            "address",
+        )

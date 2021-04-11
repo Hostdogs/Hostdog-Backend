@@ -13,12 +13,21 @@ class Accounts(AbstractUser):
     Authenticaton user model
         - Authen with username & password
     """
-    
+
     is_host = models.BooleanField(default=False)
     is_customer = models.BooleanField(default=False)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
-    dob = models.DateField(default=datetime.date.today())
+    dob = models.DateField(default=datetime.date.today)
+
+    def save(self, *args, **kwargs):
+        created = not self.pk
+        super(Accounts, self).save(*args, **kwargs)
+        if created:
+            if self.is_host:
+                Host.objects.create(account=self)
+            elif self.is_customer:
+                Customer.objects.create(account=self)
 
     def __str__(self):
         return self.username
@@ -47,7 +56,7 @@ class Customer(models.Model):
     Customer profile model
         -store customer info about hostdog
     """
-    account = models.OneToOneField(Accounts, on_delete=models.CASCADE,primary_key=True)
+    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
     customer_bio = models.TextField(max_length=100, blank=True)
     customer_dog_count = models.IntegerField(default=0)
     customer_hosted_count = models.IntegerField(default=0)
@@ -55,14 +64,17 @@ class Customer(models.Model):
     def __str__(self):
         return str(self.account)
 
-
 class Dog(models.Model):
-    customer = models.ForeignKey(Customer,on_delete=models.CASCADE)
+    """
+    Dog profile model
+        -store dog info 
+    """
+    customer = models.ForeignKey(Customer, to_field="account" , on_delete=models.CASCADE)
     dog_name = models.CharField(max_length=50)
     dog_bio = models.TextField(max_length=100)
     dog_status = models.CharField(max_length=20)
     dog_create_date = models.DateField(auto_now_add=True)
-    dog_dob = models.DateField(default=datetime.date.today())
+    dog_dob = models.DateField(default=datetime.date.today)
     dog_breed = models.CharField(max_length=20)
     dog_weight = models.FloatField(default=0.0)
 
