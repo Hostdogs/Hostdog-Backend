@@ -1,6 +1,6 @@
 from django.db import models
 import datetime
-from django.utils.translation import check_for_language, gettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import (
     AbstractUser,
 )
