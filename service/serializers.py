@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service
+from .models import Service,Meal
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -25,3 +25,8 @@ class ServiceSerializer(serializers.ModelSerializer):
             "service_is_dog_bath",
             "service_bio",
         )
+
+class MealSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meal
+        fields = '__all__'
