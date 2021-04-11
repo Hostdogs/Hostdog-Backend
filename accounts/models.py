@@ -40,6 +40,8 @@ class Host(models.Model):
         -store host info about hostdog
     """
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE,primary_key=True)
+    first_name = models.CharField(max_length=30, default="")
+    last_name = models.CharField(max_length=30, default="")
     host_bio = models.TextField(max_length=100, blank=True)
     host_rating = models.FloatField(default=0.0)
     host_hosted_count = models.IntegerField(default=0)
@@ -50,8 +52,6 @@ class Host(models.Model):
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
-    first_name = models.CharField(max_length=30, default="")
-    last_name = models.CharField(max_length=30, default="")
 
     def __str__(self):
         return str(self.account_id)
@@ -63,14 +63,14 @@ class Customer(models.Model):
         -store customer info about hostdog
     """
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
+    first_name = models.CharField(max_length=30, default="")
+    last_name = models.CharField(max_length=30, default="")
     customer_bio = models.TextField(max_length=100, blank=True)
     customer_dog_count = models.IntegerField(default=0)
     customer_hosted_count = models.IntegerField(default=0)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
-    first_name = models.CharField(max_length=30, default="")
-    last_name = models.CharField(max_length=30, default="")
 
     def __str__(self):
         return str(self.account_id)

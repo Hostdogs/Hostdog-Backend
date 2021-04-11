@@ -22,6 +22,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
 
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
+    http_method_names = ("get", "head", "options")
 
     @action(
         methods=["post"],
@@ -49,16 +50,6 @@ class AccountsViewSet(viewsets.ModelViewSet):
             )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def update(self, request, *args, **kwargs):
-        """
-        Override update method
-        """
-        instance = self.get_object()
-        serializer = UpdateAccountSerializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
 
 class DogProfileViewSet(viewsets.ModelViewSet):
     """

@@ -15,8 +15,6 @@ class AccountSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
-            "first_name",
-            "last_name",
         )
         extra_kwargs = {
             "password": {"write_only": True},
@@ -45,6 +43,8 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = (
+            "first_name",
+            "last_name",
             "customer_bio",
             "customer_dog_count",
             "customer_hosted_count",
@@ -62,7 +62,8 @@ class HostProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Host
         fields = (
-            "account",
+            "first_name",
+            "last_name",
             "host_bio",
             "host_rating",
             "host_hosted_count",
@@ -83,7 +84,6 @@ class DogProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dog
         fields = (
-            "id",
             "customer_id",
             "dog_name",
             "dog_dob",
