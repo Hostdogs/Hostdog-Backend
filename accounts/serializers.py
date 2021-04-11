@@ -95,18 +95,3 @@ class DogProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "dog_name": {"required": True},
         }
-
-
-class UpdateAccountSerializer(serializers.ModelSerializer):
-    """
-    Serializer for update account detail
-    """
-    class Meta:
-        model = Accounts
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "mobile",
-            "address",
-        )

@@ -4,7 +4,6 @@ from accounts.serializers import (
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
-    UpdateAccountSerializer,
 )
 from accounts.models import Accounts, Customer, Host
 from rest_framework import generics, viewsets, status
