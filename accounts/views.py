@@ -16,7 +16,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
 
-class AccountsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class AccountsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query account
     """
@@ -85,6 +85,7 @@ class DogProfileViewSet(viewsets.ModelViewSet):
             queryset = Dog.objects.filter(customer=parent_lookup)
         else:
             user = self.request.user
+            #print(user, self.request.auth)
             queryset = Dog.objects.filter(customer=user.id)
         return queryset
 

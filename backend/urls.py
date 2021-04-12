@@ -15,8 +15,6 @@ Including another URLconf
 """
 
 
-from accounts.models import Accounts
-from service.models import Service
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
