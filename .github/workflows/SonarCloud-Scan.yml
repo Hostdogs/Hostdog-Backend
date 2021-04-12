@@ -13,6 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        projectBaseDir: ["."]
+        fetch-depth: 0
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@32ea6119a4bd977dc6307acb6bbbf277152ede95
