@@ -14,8 +14,11 @@ class ServiceSerializer(serializers.ModelSerializer):
             "dog",
             "service_status",
             "service_is_over_night",
-            "service_reg_time",
+            "service_create_time",
+            "service_start_time",
             "service_end_time",
+            "service_send_time",
+            "service_get_time",
             "service_meal_type",
             "service_meal_per_day",
             "service_meal_weight",
@@ -29,10 +32,24 @@ class ServiceSerializer(serializers.ModelSerializer):
 class MealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meal
-        fields = '__all__'
+        fields = (
+            "host",
+            "meal_type",
+            "meal_price",
+        )
 
 class HostServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = HostService
-        fields = '__all__'
+        fields = (
+            "host",
+            "is_dog_walk",
+            "price_dog_walk",
+            "is_get_dog",
+            "price_get_dog",
+            "is_deliver_dog",
+            "price_deliver_dog",
+            "is_bath_dog",
+            "price_bath_dog"
+        )
 
