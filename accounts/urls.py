@@ -17,9 +17,14 @@ class NestedDefaultRouter(NestedRouterMixin, DefaultRouter):
 
 
 router = NestedDefaultRouter()
-router.register(r"account", AccountsViewSet)
-router.register(r"dog", DogProfileViewSet)
-router.register(r"profile-host", HostProfileViewSet)
-router.register(r"profile-customer", CustomerProfileViewSet)
+router.register(r"accounts", AccountsViewSet)
+router.register(r"dogs", DogProfileViewSet)
+router.register(r"profilehost", HostProfileViewSet)
+router.register(r"profilecustomer", CustomerProfileViewSet).register(
+    r"dogs",
+    DogProfileViewSet,
+    basename="profile-customer-dogs",
+    parents_query_lookups=["profilecustomer"]
+)
 
 urlpatterns = router.urls
