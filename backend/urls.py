@@ -36,4 +36,5 @@ urlpatterns = [
     ),
     path("", include_docs_urls(title="Hostdog-API")),
     path('api/service/', include('service.urls')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

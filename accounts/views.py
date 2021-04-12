@@ -5,23 +5,25 @@ from accounts.serializers import (
     DogProfileSerializer,
     ChangePasswordSerializer,
 )
-from accounts.models import Accounts, Customer, Host
-from rest_framework import generics, viewsets, status
+from accounts.models import Accounts, Customer, Host, Dog
+from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from accounts.models import Dog
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 
 
-class AccountsViewSet(viewsets.ModelViewSet):
+class AccountsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query account
     """
 
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
-    http_method_names = ("get", "head", "options")
+    http_method_names = ("get", "post", "delete", "head", "options")
 
     @action(
         methods=["post"],
@@ -50,6 +52,23 @@ class AccountsViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class AuthToken(ObtainAuthToken):
+    """
+    API endpoint for Token authentication
+    """
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            "token": token.key,
+            "user_id": user.pk,
+            "username": user.username,
+            "email": user.email
+        })
+
 class DogProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query dog
@@ -57,7 +76,17 @@ class DogProfileViewSet(viewsets.ModelViewSet):
 
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [r"^dog_name", r"^dog_breed"]
 
+    def get_queryset(self):
+        parent_lookup = self.kwargs.get("parent_lookup_profilecustomer", None)
+        if parent_lookup is not None:
+            queryset = Dog.objects.filter(customer=parent_lookup)
+        else:
+            user = self.request.user
+            queryset = Dog.objects.filter(customer=user.id)
+        return queryset
 
 class CustomerProfileViewSet(viewsets.ModelViewSet):
     """
@@ -71,6 +100,7 @@ class CustomerProfileViewSet(viewsets.ModelViewSet):
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
         return generics.get_object_or_404(Customer, account=item)
+
 
 
 class HostProfileViewSet(viewsets.ModelViewSet):
