@@ -97,7 +97,7 @@ class Dog(models.Model):
     """
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, related_name="dogs", on_delete=models.CASCADE)
     picture = models.ImageField(
         verbose_name=_("Dog's image"), upload_to="dog/", blank=True
     )

@@ -6,7 +6,6 @@ class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
-
     class Meta:
         model = Accounts
         fields = (
@@ -34,50 +33,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 
-class CustomerProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer for customer model
-    """
-
-    class Meta:
-        model = Customer
-        fields = (
-            "picture",
-            "first_name",
-            "last_name",
-            "customer_bio",
-            "customer_dog_count",
-            "customer_hosted_count",
-            "address",
-            "mobile",
-            "dob"
-        )
-
-
-class HostProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer for host model
-    """
-
-    class Meta:
-        model = Host
-        fields = (
-            "picture",
-            "first_name",
-            "last_name",
-            "host_bio",
-            "host_rating",
-            "host_hosted_count",
-            "host_max",
-            "host_avaliable",
-            "host_area",
-            "host_schedule",
-            "address",
-            "mobile",
-            "dob"
-        )
-
-
 class DogProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for dog model
@@ -97,3 +52,49 @@ class DogProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "dog_name": {"required": True},
         }
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for customer model
+    """
+    dogs = DogProfileSerializer(read_only=True, many=True)
+    class Meta:
+        model = Customer
+        fields = (
+            "account",
+            "picture",
+            "first_name",
+            "last_name",
+            "customer_bio",
+            "customer_dog_count",
+            "customer_hosted_count",
+            "address",
+            "mobile",
+            "dob",
+            "dogs"
+        )
+
+
+class HostProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for host model
+    """
+
+    class Meta:
+        model = Host
+        fields = (
+            "account",
+            "picture",
+            "first_name",
+            "last_name",
+            "host_bio",
+            "host_rating",
+            "host_hosted_count",
+            "host_max",
+            "host_avaliable",
+            "host_area",
+            "host_schedule",
+            "address",
+            "mobile",
+            "dob"
+        )
+
