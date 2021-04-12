@@ -12,6 +12,7 @@ class TestModel(TestCase):
     def setUpTestData(cls):
         
         acc_001 = Accounts.objects.create(
+            id = 1,
             is_superuser=False,
             password='123123123',
             last_login='2021-04-12 00:00:00+00:00',
@@ -22,7 +23,8 @@ class TestModel(TestCase):
             date_joined='2021-04-12 00:00:00+00:00',
             is_host=True
         )
-        acc_002 = Accounts.objects.create(
+        acc_002 = Accounts(
+            #id = 2,
             is_superuser=False,
             password='123123123',
             last_login='2021-04-12',
@@ -33,13 +35,25 @@ class TestModel(TestCase):
             date_joined='2021-04-12',
             is_host=False
         )
-        acc_001.save()
+        acc_003 = Accounts(
+            #id = 3,
+            is_superuser=False,
+            password='123123123',
+            last_login='2021-04-12',
+            username='test_User003',
+            email='account@email.com',
+            is_active=True,
+            is_staff=False,
+            date_joined='2021-04-12',
+            is_host=True
+        )
         acc_002.save()
+        acc_003.save()
 
         cus_001 = Customer.objects.create(
             first_name='first',
             last_name='last',
-            account=Accounts.objects.get(id = 1),
+            account_id = 1,
             gender='Male',
             address='address',
             mobile='0812345678',
@@ -75,11 +89,11 @@ class TestModel(TestCase):
         self.assertTrue(is_host)
 
     def test_customer(self):
-        cus = Customer.objects.get(id = 1)
+        cus = Customer.objects.get(account_id = 1)
 
         first_name = f'{cus.first_name}'
         last_name = f'{cus.last_name}'
-        account = Accounts.objects.get(account_id)
+        account_id = cus.account_id
         gender = f'{cus.gender}'
         address = f'{cus.address}'
         mobile = f'{cus.mobile}'
@@ -89,10 +103,10 @@ class TestModel(TestCase):
         customer_hosted_count = cus.customer_hosted_count
 
         word = str(cus)
-        self.assertEqual(word,cus)
+        self.assertEqual(word,str(cus))
         self.assertEqual(first_name,'first')
         self.assertEqual(last_name,'last')
-        self.assertEqual(account,1)
+        self.assertEqual(account_id,1)
         self.assertEqual(gender,'Male')
         self.assertEqual(address,'address')
         self.assertEqual(mobile,'0812345678')
