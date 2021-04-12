@@ -36,10 +36,10 @@ class Service(models.Model):
 
 class HostService(models.Model):
     host = models.OneToOneField(Host,on_delete=models.CASCADE,primary_key=True)
-    # walk_dog = models.JSONField()
-    # get_dog = models.JSONField() 
-    # deliver_dog = models.JSONField()
-    # bath_dog = models.JSONField()
+    walk_dog = models.JSONField()
+    get_dog = models.JSONField() 
+    deliver_dog = models.JSONField()
+    bath_dog = models.JSONField()
 
 
 
