@@ -1,6 +1,9 @@
 from django.db import models
 from accounts.models import Host,Customer,Dog
 import datetime
+import json
+
+
 
 class Meal(models.Model):
     host = models.ForeignKey(Host,on_delete=models.CASCADE)
@@ -26,12 +29,20 @@ class Service(models.Model):
     service_meal_weight = models.IntegerField(default=20)
     service_is_walk = models.BooleanField(default=False)
     service_is_get_dog = models.BooleanField(default=False)
-    service_is_ride_dog = models.BooleanField(default=False)
+    service_is_deliver_dog = models.BooleanField(default=False)
     service_is_dog_bath = models.BooleanField(default=False)
     service_bio = models.TextField(max_length=255,default="")
 
 
-# class HostService(models.Model):
+class HostService(models.Model):
+    host = models.OneToOneField(Host,on_delete=models.CASCADE,primary_key=True)
+    # walk_dog = models.JSONField()
+    # get_dog = models.JSONField() 
+    # deliver_dog = models.JSONField()
+    # bath_dog = models.JSONField()
+
+
+
 
 
 
