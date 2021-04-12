@@ -1,4 +1,5 @@
 from accounts.views import (
+    AuthToken,
     CustomerProfileViewSet,
     HostProfileViewSet,
     AccountsViewSet,
@@ -27,4 +28,7 @@ router.register(r"profilecustomer", CustomerProfileViewSet).register(
     parents_query_lookups=["profilecustomer"]
 )
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("token/", AuthToken.as_view())
+]
+urlpatterns += router.urls
