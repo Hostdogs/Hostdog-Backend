@@ -5,11 +5,10 @@ from accounts.serializers import (
     DogProfileSerializer,
     ChangePasswordSerializer,
 )
-from accounts.models import Accounts, Customer, Host
-from rest_framework import generics, mixins, viewsets, status
+from accounts.models import Accounts, Customer, Host, Dog
+from rest_framework import generics, viewsets, status, filters, mixins
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from accounts.models import Dog
+from rest_framework.permissions import IsAuthenticated, NOT
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -22,7 +21,9 @@ class AccountsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
-    http_method_names = ("get", "post", "head", "options")
+    http_method_names = ("get", "post", "delete", "head", "options")
+    filter_backends = [filters.SearchFilter]
+    search_fields = [r"^email", r"^username"]
 
     @action(
         methods=["post"],
@@ -51,6 +52,7 @@ class AccountsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DogProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query dog
@@ -58,7 +60,15 @@ class DogProfileViewSet(viewsets.ModelViewSet):
 
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [r"^dog_name", r"^dog_breed"]
 
+    def get_queryset(self):
+        parent_lookup = self.kwargs.get("parent_lookup_profilecustomer", None)
+        if parent_lookup is not None:
+            return Dog.objects.filter(customer=parent_lookup)
+        else:
+            return Dog.objects.all()
 
 class CustomerProfileViewSet(viewsets.ModelViewSet):
     """
@@ -68,6 +78,8 @@ class CustomerProfileViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ("get", "put", "patch", "head", "options")
+    filter_backends = [filters.SearchFilter]
+    search_fields = [r"^first_name", r"^last_name"]
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
@@ -82,6 +94,8 @@ class HostProfileViewSet(viewsets.ModelViewSet):
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
     http_method_names = ("get", "put", "patch", "head", "options")
+    filter_backends = [filters.SearchFilter]
+    search_fields = [r"^first_name", r"^last_name"]
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
