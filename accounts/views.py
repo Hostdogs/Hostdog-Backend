@@ -69,7 +69,7 @@ class AuthToken(ObtainAuthToken):
             "email": user.email
         })
 
-class DogProfileViewSet(viewsets.ModelViewSet):
+class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query dog
     """
@@ -80,16 +80,15 @@ class DogProfileViewSet(viewsets.ModelViewSet):
     search_fields = [r"^dog_name", r"^dog_breed"]
 
     def get_queryset(self):
-        parent_lookup = self.kwargs.get("parent_lookup_profilecustomer", None)
-        if parent_lookup is not None:
-            queryset = Dog.objects.filter(customer=parent_lookup)
-        else:
-            user = self.request.user
-            #print(user, self.request.auth)
-            queryset = Dog.objects.filter(customer=user.id)
+        """
+        Can query only your dog
+        """
+        user = self.request.user
+        #print(user, self.request.auth)
+        queryset = Dog.objects.filter(customer=user.id)
         return queryset
 
-class CustomerProfileViewSet(viewsets.ModelViewSet):
+class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query customer
     """
@@ -112,7 +111,17 @@ class HostProfileViewSet(viewsets.ModelViewSet):
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
     http_method_names = ("get", "put", "patch", "head", "options")
+    filter_backends = [filters.SearchFilter]
+    search_fields = [r"^first_name", r"^last_name"]
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
         return generics.get_object_or_404(Host, account=item)
+
+    def get_queryset(self):
+        """
+        TODO:
+            - choose filtering field
+            - endpoint for profile querying
+        """
+        pass

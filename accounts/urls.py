@@ -24,8 +24,8 @@ router.register(r"profilehost", HostProfileViewSet)
 router.register(r"profilecustomer", CustomerProfileViewSet).register(
     r"dogs",
     DogProfileViewSet,
-    basename="profile-customer-dogs",
-    parents_query_lookups=["profilecustomer"]
+    basename="profilecustomer-dogs",
+    parents_query_lookups=["customer"]
 )
 
 urlpatterns = [
