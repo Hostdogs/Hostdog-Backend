@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class AccountsViewSet(viewsets.ModelViewSet):
@@ -76,8 +77,9 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = [r"^dog_name", r"^dog_breed"]
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
+    search_fields = (r"^dog_name", r"^dog_breed")
+    filterset_fields = ("dog_status", "dog_breed", "dog_weight", "dog_status", "gender")
 
     def get_queryset(self):
         """
@@ -96,6 +98,9 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ("get", "put", "patch", "head", "options")
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
+    search_fields = (r"^first_name", r"^last_name")
+    filterset_fields = ("customer_dog_count")
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
@@ -111,17 +116,10 @@ class HostProfileViewSet(viewsets.ModelViewSet):
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
     http_method_names = ("get", "put", "patch", "head", "options")
-    filter_backends = [filters.SearchFilter]
-    search_fields = [r"^first_name", r"^last_name"]
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
+    search_fields = (r"^first_name", r"^last_name")
+    filterset_fields = ("host_rating", "host_area", "host_schedule")
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
         return generics.get_object_or_404(Host, account=item)
-
-    def get_queryset(self):
-        """
-        TODO:
-            - choose filtering field
-            - endpoint for profile querying
-        """
-        pass
