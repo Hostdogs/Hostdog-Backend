@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Accounts, Customer, Host, Dog
+from rest_framework.authtoken.admin import TokenAdmin
 
 
 class CustomUserAdmin(UserAdmin):
@@ -34,14 +35,14 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ("username",)
     ordering = ("username",)
 
+class DogAdmin(admin.ModelAdmin):
+    list_filter = ('customer')
+
+
+TokenAdmin.raw_id_fields = ["user"]
 
 admin.site.register(Accounts, CustomUserAdmin)
 admin.site.register(Customer)
 admin.site.register(Host)
-
-
-class DogAdmin(admin.ModelAdmin):
-    list_filter = ('customer')
-
 admin.site.register(Dog)
 

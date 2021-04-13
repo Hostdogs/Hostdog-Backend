@@ -6,3 +6,4 @@ staticfiles
 .vscode/
 *.sqlite3
 .env
+htmlcov/
