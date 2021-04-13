@@ -1,0 +1,19 @@
+name: codacy-coverage-reporter
+
+on:
+ push:
+  branches: [main, develop]
+ pull_request:
+  branches: [main, develop]
+
+jobs:
+  codacy-coverage-reporter:
+    runs-on: ubuntu-latest
+    name: codacy-coverage-reporter
+    steps:
+      - uses: actions/checkout@master
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@master
+        with:
+          project-token: (7%%+-g7t51cal3+3#j^)9**-fe=d7rk!_!&)5z656s5$v%q#6
+          coverage-reports: cobertura.xml
