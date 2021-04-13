@@ -17,7 +17,6 @@ class TestModel(TestCase):
     def setUpTestData(cls):
         
         acc_001 = Accounts.objects.create(
-            id = 1,
             is_superuser=False,
             password='123123123',
             last_login='2021-04-13 14:37:50.965870+00:00',
@@ -29,7 +28,6 @@ class TestModel(TestCase):
             is_host=True
         )
         acc_002 = Accounts(
-            #id = 2,
             is_superuser=False,
             password='123123123',
             last_login='2021-04-13 14:37:50.965870+00:00',
@@ -41,7 +39,6 @@ class TestModel(TestCase):
             is_host=False
         )
         acc_003 = Accounts(
-            #id = 3,
             is_superuser=False,
             password='123123123',
             last_login='2021-04-13 14:37:50.965870+00:00',
@@ -55,7 +52,6 @@ class TestModel(TestCase):
         acc_002.save()
         acc_003.save()
         acc_004 = Accounts.objects.create(
-            id = 4,
             is_superuser=False,
             password='123123123',
             last_login='2021-04-13 14:37:50.965870+00:00',
@@ -69,7 +65,7 @@ class TestModel(TestCase):
         cus_001 = Customer.objects.create(
             first_name='first',
             last_name='last',
-            account_id=1,
+            account_id=acc_001.id,
             gender='Male',
             address='address',
             mobile='0812345678',
@@ -82,7 +78,7 @@ class TestModel(TestCase):
         host_001 = Host.objects.create(
             first_name='first',
             last_name='last',
-            account_id=4,
+            account_id=acc_002.id,
             gender='Female',
             host_bio='host_bio',
             host_rating=4.5,
@@ -91,7 +87,7 @@ class TestModel(TestCase):
         
         dog_001 = Dog.objects.create(
             gender='Male',
-            customer_id=1,
+            customer_id=cus_001.account_id,
             dog_name='dog_name',
             dog_bio='dog_bio',
             dog_status='dog_status',
@@ -154,7 +150,7 @@ class TestModel(TestCase):
         self.assertEqual(customer_hosted_count,4)
 
     def test_host(self):
-        host = Host.objects.get(account_id=4)
+        host = Host.objects.get(account_id=2)
 
         first_name = f'{host.first_name}'
         last_name = f'{host.last_name}'
@@ -168,7 +164,7 @@ class TestModel(TestCase):
         self.assertEqual(word,str(host))
         self.assertEqual(first_name,'first')
         self.assertEqual(last_name,'last')
-        self.assertEqual(account_id,4)
+        self.assertEqual(account_id,2)
         self.assertEqual(gender,'Female')
         self.assertEqual(host_bio,'host_bio')
         self.assertEqual(host_rating,4.5)
