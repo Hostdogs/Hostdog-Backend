@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service,Meal,HostService
+from .models import Service,Meal,HostService,Chat
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -51,5 +51,17 @@ class HostServiceSerializer(serializers.ModelSerializer):
             "price_deliver_dog",
             "is_bath_dog",
             "price_bath_dog"
+        )
+
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = Chat
+        fields = (
+            "id", 
+            "customer",
+            "host",
+            "chat_date_time",
+            "chat_data",
+            "chat_send_by_host"
         )
 
