@@ -8,14 +8,29 @@ from accounts.serializers import (
 from accounts.models import Accounts, Customer, Host, Dog
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated, BasePermission, IsAdminUser
 
+
+class IsOwner(BasePermission):
+    """
+    Object-level permission to only owner of an object or admin to edit it.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Requirements:
+            - authenticated
+            - staff
+            - owner
+        """
+        user = request.user
+        return user and user.is_authenticated and (user.is_staff or obj == user)
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
@@ -24,7 +39,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
 
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
-    http_method_names = ("get", "post", "delete", "head", "options")
+    http_method_names = ["get", "post", "delete", "head", "options"]
 
     @action(
         methods=["post"],
@@ -53,22 +68,34 @@ class AccountsViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def get_permissions(self):
+        if self.action in {"list", "update", "partial_update"}:
+            self.permission_classes = [IsAdminUser]
+        elif self.action in {"retrieve", "destroy", "set_password"}:
+            self.permission_classes = [IsOwner]
+        return super().get_permissions()
 
 class AuthToken(ObtainAuthToken):
     """
     API endpoint for Token authentication
     """
+
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={"request": request})
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            "token": token.key,
-            "user_id": user.pk,
-            "username": user.username,
-            "email": user.email
-        })
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.pk,
+                "username": user.username,
+                "email": user.email,
+            }
+        )
+
 
 class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -77,18 +104,19 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
-    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    search_fields = (r"^dog_name", r"^dog_breed")
-    filterset_fields = ("dog_status", "dog_breed", "dog_weight", "dog_status", "gender")
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [r"^dog_name", r"^dog_breed"]
+    filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
 
     def get_queryset(self):
         """
         Can query only your dog
         """
         user = self.request.user
-        #print(user, self.request.auth)
+        # print(user, self.request.auth)
         queryset = Dog.objects.filter(customer=user.id)
         return queryset
+
 
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -97,15 +125,14 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
-    http_method_names = ("get", "put", "patch", "head", "options")
-    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    search_fields = (r"^first_name", r"^last_name")
-    filterset_fields = ("customer_dog_count", )
+    http_method_names = ["get", "put", "patch", "head", "options"]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [r"^first_name", r"^last_name"]
+    filterset_fields = ["customer_dog_count"]
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
         return generics.get_object_or_404(Customer, account=item)
-
 
 
 class HostProfileViewSet(viewsets.ModelViewSet):
