@@ -14,13 +14,20 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated, BasePermission, IsAdminUser
+from rest_framework.permissions import (
+    IsAuthenticated,
+    BasePermission,
+    IsAdminUser,
+    SAFE_METHODS,
+)
 
 
 class IsOwner(BasePermission):
     """
     Object-level permission to only owner of an object or admin to edit it.
     """
+
+    message = "you are not owner of this account!"
 
     def has_object_permission(self, request, view, obj):
         """
@@ -31,6 +38,33 @@ class IsOwner(BasePermission):
         """
         user = request.user
         return user and user.is_authenticated and (user.is_staff or obj == user)
+
+
+class IsDogOwner(BasePermission):
+    """
+    Only dog owner can create their dog on their profile
+    """
+
+    message = "you can't create dog profile on other profile!"
+
+    def has_permission(self, request, view):
+        """
+        Allow GET method for read only but user must authenticated themself
+        """
+        if not request.user.is_authenticated:
+            return False
+        if request.method in SAFE_METHODS:
+            return True
+        if view.action == "create":
+            parent_lookup_customer = int(view.kwargs.get("parent_lookup_customer"))
+            if (
+                parent_lookup_customer is not None
+                and parent_lookup_customer != request.user.id
+            ):
+                return False
+            return int(request.data.get("customer")) == request.user.id
+        return super().has_permission(request, view)
+
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
@@ -75,6 +109,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
             self.permission_classes = [IsOwner]
         return super().get_permissions()
 
+
 class AuthToken(ObtainAuthToken):
     """
     API endpoint for Token authentication
@@ -102,21 +137,12 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query dog
     """
 
+    permission_classes = [IsDogOwner]
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^dog_name", r"^dog_breed"]
     filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
-
-    def get_queryset(self):
-        """
-        Can query only your dog
-        """
-        user = self.request.user
-        # print(user, self.request.auth)
-        queryset = Dog.objects.filter(customer=user.id)
-        return queryset
-
 
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """

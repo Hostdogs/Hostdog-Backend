@@ -43,6 +43,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dog
         fields = (
+            "id",
             "customer",
             "picture",
             "dog_name",
