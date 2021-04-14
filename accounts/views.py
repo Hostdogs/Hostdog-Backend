@@ -100,7 +100,7 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     http_method_names = ("get", "put", "patch", "head", "options")
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = (r"^first_name", r"^last_name")
-    filterset_fields = ("customer_dog_count")
+    filterset_fields = ("customer_dog_count", )
 
     def get_object(self, queryset=None, **kwargs):
         item = self.kwargs.get("pk")
