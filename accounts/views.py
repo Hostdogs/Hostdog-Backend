@@ -40,17 +40,21 @@ class IsOwner(BasePermission):
         return user and user.is_authenticated and (user.is_staff or obj == user)
 
 
-class IsDogOwner(BasePermission):
+class IsDogOwnerOrReadOnly(BasePermission):
     """
-    Only dog owner can create their dog on their profile
+    - Allow only dog owner to update or partial-update their dog
+    - Only dog owner can create their dog on their profile
+    - Anonymous user not allow
+    - Allow to  read-only if not owner of the dog
     """
 
-    message = "you can't create dog profile on other profile!"
+    message = "Permission failed!"
 
     def has_permission(self, request, view):
         """
         Allow GET method for read only but user must authenticated themself
         """
+        print(view.action)
         if not request.user.is_authenticated:
             return False
         if request.method in SAFE_METHODS:
@@ -65,6 +69,17 @@ class IsDogOwner(BasePermission):
             return int(request.data.get("customer")) == request.user.id
         return super().has_permission(request, view)
 
+    def has_object_permission(self, request, view, obj):
+        """
+        only dog owner can update, partial-update, destroy their dog
+        """
+        if view.action in {"update", "partial_update"}:
+            customer = int(request.data.get("customer"))
+            print(customer, obj.customer.account.id)
+            print(type(customer), type(obj.customer.account.id))
+            if customer is not None and customer != obj.customer.account.id:
+                return False
+        return obj.customer.account == request.user
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
@@ -137,7 +152,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query dog
     """
 
-    permission_classes = [IsDogOwner]
+    permission_classes = [IsDogOwnerOrReadOnly]
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
