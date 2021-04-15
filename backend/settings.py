@@ -33,7 +33,7 @@ SECRET_KEY = str(os.getenv("SECRET_KEY"))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False if ON_HEROKU else True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["hostdog-backend-dev.herokuapp.com"]
 
 AUTH_USER_MODEL = "accounts.Accounts"
 
