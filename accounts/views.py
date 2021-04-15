@@ -57,10 +57,10 @@ class IsDogOwnerOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         if view.action == "create":
-            parent_lookup_customer = int(view.kwargs.get("parent_lookup_customer"))
+            parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
             if (
                 parent_lookup_customer is not None
-                and parent_lookup_customer != request.user.id
+                and int(parent_lookup_customer) != request.user.id
             ):
                 return False
             return int(request.data.get("customer")) == request.user.id
@@ -95,8 +95,11 @@ class IsProfileOwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        account = int(request.data.get("account"))
-        return account == request.user.id
+        if view.action in {"update", "partial_update"}:
+            account = request.data.get("account")
+            if account is not None and int(account) != obj.account.id:
+                return False
+        return obj.account == request.user
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
@@ -192,13 +195,10 @@ class HostProfileViewSet(viewsets.ModelViewSet):
     API endpoint for query host
     """
 
+    permission_classes = [IsProfileOwnerOrReadOnly]
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
     http_method_names = ("get", "put", "patch", "head", "options")
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = (r"^first_name", r"^last_name")
     filterset_fields = ("host_rating", "host_area", "host_schedule")
-
-    def get_object(self, queryset=None, **kwargs):
-        item = self.kwargs.get("pk")
-        return generics.get_object_or_404(Host, account=item)

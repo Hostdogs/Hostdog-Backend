@@ -109,7 +109,7 @@ class Dog(models.Model):
     gender = models.CharField(
         max_length=10, blank=False, default="Male", choices=GENDER_OPTIONS
     )
-    dog_bio = models.TextField(max_length=100)
+    dog_bio = models.TextField(max_length=100, blank=True)
     dog_status = models.CharField(max_length=20)
     dog_create_date = models.DateField(auto_now_add=True)
     dog_dob = models.DateField(default=datetime.date.today)
