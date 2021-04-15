@@ -22,7 +22,7 @@ from rest_framework.permissions import (
 )
 
 
-class IsOwner(BasePermission):
+class IsOwnerOrAdmin(BasePermission):
     """
     Object-level permission to only owner of an object or admin to edit it.
     """
@@ -51,10 +51,7 @@ class IsDogOwnerOrReadOnly(BasePermission):
     message = "Permission failed!"
 
     def has_permission(self, request, view):
-        """
-        Allow GET method for read only but user must authenticated themself
-        """
-        print(view.action)
+        print(view.action, "Dog")
         if not request.user.is_authenticated:
             return False
         if request.method in SAFE_METHODS:
@@ -70,16 +67,36 @@ class IsDogOwnerOrReadOnly(BasePermission):
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        """
-        only dog owner can update, partial-update, destroy their dog
-        """
+        if request.method in SAFE_METHODS:
+            return True
         if view.action in {"update", "partial_update"}:
             customer = int(request.data.get("customer"))
-            print(customer, obj.customer.account.id)
-            print(type(customer), type(obj.customer.account.id))
             if customer is not None and customer != obj.customer.account.id:
                 return False
         return obj.customer.account == request.user
+
+
+class IsProfileOwnerOrReadOnly(BasePermission):
+    """
+    - Anyone who authenticated can see other profile
+    - Only profile owner can update, partial-update their profile
+    - Profile cant create (Created when account was create)
+    """
+    message = "Permission failed!"
+
+    def has_permission(self, request, view):
+        print(view.action, "Profile")
+        if not request.user.is_authenticated:
+            return False
+        if request.method in SAFE_METHODS:
+            return True
+        return super().has_permission(request, view)
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        account = int(request.data.get("account"))
+        return account == request.user.id
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
@@ -121,9 +138,8 @@ class AccountsViewSet(viewsets.ModelViewSet):
         if self.action in {"list", "update", "partial_update"}:
             self.permission_classes = [IsAdminUser]
         elif self.action in {"retrieve", "destroy", "set_password"}:
-            self.permission_classes = [IsOwner]
+            self.permission_classes = [IsOwnerOrAdmin]
         return super().get_permissions()
-
 
 class AuthToken(ObtainAuthToken):
     """
@@ -163,18 +179,13 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query customer
     """
-
+    permission_classes = [IsProfileOwnerOrReadOnly]
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^first_name", r"^last_name"]
     filterset_fields = ["customer_dog_count"]
-
-    def get_object(self, queryset=None, **kwargs):
-        item = self.kwargs.get("pk")
-        return generics.get_object_or_404(Customer, account=item)
-
 
 class HostProfileViewSet(viewsets.ModelViewSet):
     """
