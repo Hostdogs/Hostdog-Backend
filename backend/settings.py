@@ -10,9 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+from logging import DEBUG
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import django_heroku
+
+ON_HEROKU = os.environ.get("ON_HEROKU")
 
 load_dotenv()
 
@@ -27,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = str(os.getenv("SECRET_KEY"))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False if ON_HEROKU else True
 
 ALLOWED_HOSTS = []
 
@@ -166,3 +170,5 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
 }
+
+django_heroku.settings(locals())
