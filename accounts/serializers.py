@@ -6,6 +6,7 @@ class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
+
     class Meta:
         model = Accounts
         fields = (
@@ -28,6 +29,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     """
     Serializer for password change endpoint
     """
+
     model = Accounts
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
@@ -37,9 +39,11 @@ class DogProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for dog model
     """
+
     class Meta:
         model = Dog
         fields = (
+            "id",
             "customer",
             "picture",
             "dog_name",
@@ -52,11 +56,15 @@ class DogProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "dog_name": {"required": True},
         }
+
+
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for customer model
     """
+
     dogs = DogProfileSerializer(read_only=True, many=True)
+
     class Meta:
         model = Customer
         fields = (
@@ -70,7 +78,9 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "address",
             "mobile",
             "dob",
-            "dogs"
+            "latitude",
+            "longitude",
+            "dogs",
         )
 
 
@@ -95,6 +105,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_schedule",
             "address",
             "mobile",
-            "dob"
+            "dob",
+            "latitude",
+            "longitude",
         )
-
