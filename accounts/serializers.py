@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from accounts.models import Accounts, Customer, Host, Dog
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -91,12 +91,19 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "dogs",
         )
 
+class HostAvailableDateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for host available date for service
+    """
+    class Meta:
+        model = HostAvailableDate
+        fields = ("host", "date")
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for host model
     """
-
+    available_dates = HostAvailableDateSerializer(read_only=True, many=True)
     class Meta:
         model = Host
         fields = (
@@ -108,7 +115,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_rating",
             "host_hosted_count",
             "host_max",
-            "host_avaliable",
+            "available_dates",
             "host_area",
             "host_schedule",
             "address",

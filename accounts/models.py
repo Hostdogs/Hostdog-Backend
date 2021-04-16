@@ -118,3 +118,15 @@ class Dog(models.Model):
 
     def __str__(self):
         return self.dog_name
+
+
+class HostAvailableDate(models.Model):
+    """
+    Host available date model
+    """
+
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="available_dates")
+    date = models.DateField(default=datetime.date.today)
+
+    def __str__(self):
+        return self.date

@@ -1,11 +1,12 @@
 from accounts.serializers import (
     AccountSerializer,
     CustomerProfileSerializer,
+    HostAvailableDateSerializer,
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -192,7 +193,7 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^first_name", r"^last_name"]
     filterset_fields = ["customer_dog_count"]
 
-class HostProfileViewSet(viewsets.ModelViewSet):
+class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query host
     """
@@ -200,7 +201,19 @@ class HostProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [IsProfileOwnerOrReadOnly]
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
-    http_method_names = ("get", "put", "patch", "head", "options")
-    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    search_fields = (r"^first_name", r"^last_name")
-    filterset_fields = ("host_rating", "host_area", "host_schedule")
+    http_method_names = ["get", "put", "patch", "head", "options"]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [r"^first_name", r"^last_name"]
+    filterset_fields = ["host_rating", "host_area", "host_schedule"]
+
+class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for manage host avalilable date
+    """
+
+    queryset = HostAvailableDate.objects.all()
+    serializer_class = HostAvailableDateSerializer
+    http_method_names = ["get", "put", "patch", "head", "options"]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [r"^date"]
+    filterset_fields = ["date"]
