@@ -76,31 +76,21 @@ class IsDogOwnerOrReadOnly(BasePermission):
                 return False
         return obj.customer.account == request.user
 
-
-class IsProfileOwnerOrReadOnly(BasePermission):
+class OwnProfilePermission(BasePermission):
     """
+    Object-level permission to only allow updating his own profile
     - Anyone who authenticated can see other profile
     - Only profile owner can update, partial-update their profile
     - Profile cant create (Created when account was create)
     """
-    message = "Permission failed!"
 
-    def has_permission(self, request, view):
-        print(view.action, "Profile")
-        if not request.user.is_authenticated:
-            return False
-        if request.method in SAFE_METHODS:
-            return True
-        return super().has_permission(request, view)
+    message = "Permission failed!"
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        if view.action in {"update", "partial_update"}:
-            account = request.data.get("account")
-            if account is not None and int(account) != obj.account.id:
-                return False
         return obj.account == request.user
+
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
@@ -146,6 +136,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
             self.permission_classes = [IsOwnerOrAdmin]
         return super().get_permissions()
 
+
 class AuthToken(ObtainAuthToken):
     """
     API endpoint for Token authentication
@@ -181,11 +172,13 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^dog_name", r"^dog_breed"]
     filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
 
+
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query customer
     """
-    permission_classes = [IsProfileOwnerOrReadOnly]
+
+    permission_classes = [OwnProfilePermission]
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
@@ -193,12 +186,13 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^first_name", r"^last_name"]
     filterset_fields = ["customer_dog_count"]
 
+
 class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query host
     """
 
-    permission_classes = [IsProfileOwnerOrReadOnly]
+    permission_classes = [OwnProfilePermission]
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
@@ -206,12 +200,13 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^first_name", r"^last_name"]
     filterset_fields = ["host_rating", "host_area", "host_schedule"]
 
+
 class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for manage host avalilable date
     """
 
-    permission_classes = [IsProfileOwnerOrReadOnly]
+    permission_classes = [OwnProfilePermission]
     queryset = HostAvailableDate.objects.all()
     serializer_class = HostAvailableDateSerializer
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]

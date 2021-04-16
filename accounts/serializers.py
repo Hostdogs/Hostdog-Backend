@@ -59,6 +59,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_breed",
             "dog_weight",
             "dog_bio",
+            "dog_create_date"
         )
 
         extra_kwargs = {
