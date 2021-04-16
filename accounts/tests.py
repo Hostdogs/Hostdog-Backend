@@ -6,6 +6,7 @@ from django.contrib.auth.models import (
 from accounts.models import Accounts, Customer, Host, Dog
 from accounts.views import AccountsViewSet,AuthToken
 from rest_framework.test import APITestCase,APIClient
+
 from django.utils import timezone
 import pytz
 import datetime
@@ -201,12 +202,10 @@ class TestView(APITestCase):
 
     @classmethod
     def setUp(self):
-        self.client = APIClient()
-        self.list_url = reverse('list')
+        
 
     def test_view_GET(self):
-        response = 
-
+        
 
 
         
