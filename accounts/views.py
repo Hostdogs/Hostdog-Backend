@@ -211,9 +211,10 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for manage host avalilable date
     """
 
+    permission_classes = [IsProfileOwnerOrReadOnly]
     queryset = HostAvailableDate.objects.all()
     serializer_class = HostAvailableDateSerializer
-    http_method_names = ["get", "put", "patch", "head", "options"]
+    http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^date"]
     filterset_fields = ["date"]

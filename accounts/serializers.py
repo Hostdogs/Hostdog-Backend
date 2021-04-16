@@ -97,7 +97,7 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = HostAvailableDate
-        fields = ("host", "date")
+        fields = ("id", "host", "date")
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
