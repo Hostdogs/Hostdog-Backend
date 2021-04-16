@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from logging import DEBUG
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -33,7 +32,7 @@ SECRET_KEY = str(os.getenv("SECRET_KEY"))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False if ON_HEROKU else True
 
-ALLOWED_HOSTS = ["hostdog-backend-dev.herokuapp.com"]
+ALLOWED_HOSTS = ["hostdog-backend.herokuapp.com"]
 
 AUTH_USER_MODEL = "accounts.Accounts"
 
