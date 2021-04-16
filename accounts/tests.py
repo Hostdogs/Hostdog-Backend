@@ -1,9 +1,11 @@
-from django.test import TestCase
+from django.test import TestCase,Client
+from django.urls import reverse
 from django.contrib.auth.models import (
     AbstractUser,
 )
 from accounts.models import Accounts, Customer, Host, Dog
-from rest_framework.test import APITestCase
+from accounts.views import AccountsViewSet,AuthToken
+from rest_framework.test import APITestCase,APIClient
 from django.utils import timezone
 import pytz
 import datetime
@@ -190,8 +192,19 @@ class TestModel(TestCase):
         self.assertEqual(dog_name,'dog_name')
         self.assertEqual(dog_bio,'dog_bio')
         self.assertEqual(dog_status,'dog_status')
-        self.assertEqual(dog_create_date,'2021-04-13')
+        self.assertEqual(dog_create_date,'2021-04-16')
         self.assertEqual(dog_dob,'2021-04-13')
         self.assertEqual(dog_breed,'dog_breed')
         self.assertEqual(dog_weight,251.32)
-       
+
+class TestView(APITestCase):
+
+    @classmethod
+    def setUp(self):
+        self.client = APIClient()
+        
+    def test_view_GET(self):
+
+
+
+        
