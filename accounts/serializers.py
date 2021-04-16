@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 from accounts.models import Accounts, Customer, Host, Dog
 
 
@@ -6,7 +7,7 @@ class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
-
+    token = serializers.SerializerMethodField()
     class Meta:
         model = Accounts
         fields = (
@@ -15,13 +16,20 @@ class AccountSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
+            "token"
         )
         extra_kwargs = {
             "password": {"write_only": True},
         }
 
+    def get_token(self, validated_data):
+        user = Accounts.objects.get(username=validated_data.username)
+        token = Token.objects.get(user=user)
+        return token.key
+
     def create(self, validated_data):
         account = Accounts.objects.create_user(**validated_data)
+        token = Token.objects.create(user=account)
         return account
 
 

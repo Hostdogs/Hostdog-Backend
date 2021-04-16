@@ -106,6 +106,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
     API endpoint for query account
     """
 
+    authentication_classes = [TokenAuthentication]
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
     http_method_names = ["get", "post", "delete", "head", "options"]
@@ -155,6 +156,7 @@ class AuthToken(ObtainAuthToken):
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
+        print(user)
         token, created = Token.objects.get_or_create(user=user)
         return Response(
             {
