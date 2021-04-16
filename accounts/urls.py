@@ -1,15 +1,33 @@
-
-from accounts.views import CustomerProfileViewSet, HostProfileViewSet, AccountsViewSet
+from accounts.views import (
+    AuthToken,
+    CustomerProfileViewSet,
+    HostProfileViewSet,
+    AccountsViewSet,
+    DogProfileViewSet,
+)
 from django.urls import path, include
+from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
-from accounts.views import DogProfileViewSet,CustomerProfileViewSet, HostProfileViewSet
+from rest_framework_extensions.routers import NestedRouterMixin
 
 app_name = "accounts"
 
-router = DefaultRouter()
-router.register('account', AccountsViewSet)
-router.register('dog',DogProfileViewSet)
-router.register('profile-host',HostProfileViewSet)
-router.register('profile-customer',CustomerProfileViewSet)
 
-urlpatterns = router.urls
+class NestedDefaultRouter(NestedRouterMixin, DefaultRouter):
+    pass
+
+
+router = NestedDefaultRouter()
+router.register(r"accounts", AccountsViewSet)
+router.register(r"dogs", DogProfileViewSet)
+router.register(r"profilehost", HostProfileViewSet)
+router.register(r"profilecustomer", CustomerProfileViewSet).register(
+    r"dogs",
+    DogProfileViewSet,
+    basename="profilecustomer-dogs",
+    parents_query_lookups=["customer"]
+)
+urlpatterns = [
+    path("token/", AuthToken.as_view())
+]
+urlpatterns += router.urls

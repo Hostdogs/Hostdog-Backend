@@ -11,16 +11,10 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Accounts
         fields = (
             "id",
-            "is_customer",
             "is_host",
             "username",
             "email",
             "password",
-            "first_name",
-            "last_name",
-            "dob",
-            "mobile",
-            "address",
         )
         extra_kwargs = {
             "password": {"write_only": True},
@@ -41,48 +35,17 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 
-class CustomerProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer for customer model
-    """
-
-    class Meta:
-        model = Customer
-        fields = (
-            "customer_bio",
-            "customer_dog_count",
-            "customer_hosted_count",
-        )
-
-
-class HostProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer for host model
-    """
-
-    class Meta:
-        model = Host
-        fields = (
-            "account",
-            "host_bio",
-            "host_rating",
-            "host_hosted_count",
-            "host_max",
-            "host_avaliable",
-            "host_area",
-            "host_schedule",
-        )
-
-
 class DogProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for dog model
     """
+
     class Meta:
         model = Dog
         fields = (
             "id",
-            "customer_id",
+            "customer",
+            "picture",
             "dog_name",
             "dog_dob",
             "dog_breed",
@@ -95,16 +58,54 @@ class DogProfileSerializer(serializers.ModelSerializer):
         }
 
 
-class UpdateAccountSerializer(serializers.ModelSerializer):
+class CustomerProfileSerializer(serializers.ModelSerializer):
     """
-    Serializer for update account detail
+    Serializer for customer model
     """
+
+    dogs = DogProfileSerializer(read_only=True, many=True)
+
     class Meta:
-        model = Accounts
+        model = Customer
         fields = (
-            "id",
+            "account",
+            "picture",
             "first_name",
             "last_name",
-            "mobile",
+            "customer_bio",
+            "customer_dog_count",
+            "customer_hosted_count",
             "address",
+            "mobile",
+            "dob",
+            "latitude",
+            "longitude",
+            "dogs",
+        )
+
+
+class HostProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for host model
+    """
+
+    class Meta:
+        model = Host
+        fields = (
+            "account",
+            "picture",
+            "first_name",
+            "last_name",
+            "host_bio",
+            "host_rating",
+            "host_hosted_count",
+            "host_max",
+            "host_avaliable",
+            "host_area",
+            "host_schedule",
+            "address",
+            "mobile",
+            "dob",
+            "latitude",
+            "longitude",
         )
