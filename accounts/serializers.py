@@ -7,17 +7,12 @@ class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
+
     token = serializers.SerializerMethodField()
+
     class Meta:
         model = Accounts
-        fields = (
-            "id",
-            "is_host",
-            "username",
-            "email",
-            "password",
-            "token"
-        )
+        fields = ("id", "is_host", "username", "email", "password", "token")
         extra_kwargs = {
             "password": {"write_only": True},
         }
@@ -26,6 +21,30 @@ class AccountSerializer(serializers.ModelSerializer):
         user = Accounts.objects.get(username=validated_data.username)
         token = Token.objects.get(user=user)
         return token.key
+
+    def validate(self, attrs):
+        """
+        validate the email and is_host field
+            - username is unique
+            - one email can apply for 2 times
+            - in two email cant apply for the same role
+        """
+        is_host = attrs["is_host"]
+        email = attrs["email"]
+        account_email = Accounts.objects.filter(email=email)
+        if account_email.count() >= 2:
+            raise serializers.ValidationError(
+                {"email": ["This email has already been used."]}
+            )
+        elif account_email.filter(is_host=is_host).exists():
+            raise serializers.ValidationError(
+                {
+                    "is_host": [
+                        f"This email has already been used for {'Host' if is_host else 'Customer'}"
+                    ]
+                }
+            )
+        return super().validate(attrs)
 
     def create(self, validated_data):
         account = Accounts.objects.create_user(**validated_data)
@@ -59,7 +78,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_breed",
             "dog_weight",
             "dog_bio",
-            "dog_create_date"
+            "dog_create_date",
         )
 
         extra_kwargs = {
@@ -74,6 +93,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
         if value.account != self.context["request"].user:
             raise serializers.ValidationError("Bad value.")
         return value
+
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
@@ -100,10 +120,12 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "dogs",
         )
 
+
 class HostAvailableDateSerializer(serializers.ModelSerializer):
     """
     Serializer for host available date for service
     """
+
     class Meta:
         model = HostAvailableDate
         fields = ("id", "host", "date")
@@ -116,12 +138,25 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
         if value.account != self.context["request"].user:
             raise serializers.ValidationError("Bad value.")
         return value
+    
+    def validate_date(self, value):
+        """
+        validate the date field
+            - the date must not have the duplicate for one host
+        """
+        host = Host.objects.get(account=self.context["request"].user)
+        if HostAvailableDate.objects.filter(date=value, host=host).exists():
+            raise serializers.ValidationError("This date has already been assigned for this host")
+        return value
+
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for host model
     """
+
     available_dates = HostAvailableDateSerializer(read_only=True, many=True)
+
     class Meta:
         model = Host
         fields = (
