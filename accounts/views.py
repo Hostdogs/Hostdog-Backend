@@ -40,6 +40,7 @@ class IsOwnerOrAdmin(BasePermission):
         user = request.user
         return user and user.is_authenticated and (user.is_staff or obj == user)
 
+
 class DogOwnerPermission(BasePermission):
     """
     - Allow only dog owner to update or partial-update their dog
@@ -48,14 +49,12 @@ class DogOwnerPermission(BasePermission):
     - Allow to  read-only if not owner of the dog
     """
 
-    message = "Permission failed!"
-
     def has_permission(self, request, view):
         if view.action == "create":
             parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
             if (
                 parent_lookup_customer is not None
-                and int(parent_lookup_customer) != request.user.id
+                and Accounts.objects.get(id=parent_lookup_customer) != request.user.id
             ):
                 return False
         return super().has_permission(request, view)
@@ -74,12 +73,32 @@ class OwnProfilePermission(BasePermission):
     - Profile cant create (Created when account was create)
     """
 
-    message = "Permission failed!"
-
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
         return obj.account == request.user
+
+
+class AvailableDateOwnPermission(BasePermission):
+    """
+    Allow only profile owner to edit their own available date
+    - Anyone who authenticated can see this available date
+    """
+
+    def has_permission(self, request, view):
+        if view.action == "create":
+            parent_lookup_host = view.kwargs.get("parent_lookup_host")
+            if (
+                parent_lookup_host is not None
+                and Accounts.objects.get(id=parent_lookup_host) != request.user
+            ):
+                return False
+        return super().has_permission(request, view)
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.host.account == request.user
 
 
 class AccountsViewSet(viewsets.ModelViewSet):
@@ -196,7 +215,7 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for manage host avalilable date
     """
 
-    permission_classes = [OwnProfilePermission]
+    permission_classes = [AvailableDateOwnPermission]
     queryset = HostAvailableDate.objects.all()
     serializer_class = HostAvailableDateSerializer
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]

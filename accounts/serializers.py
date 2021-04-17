@@ -66,6 +66,14 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_name": {"required": True},
         }
 
+    def validate_customer(self, value):
+        """
+        validate the customer field
+            - user cant change customer of dog
+        """
+        if value.account != self.context["request"].user:
+            raise serializers.ValidationError("Bad value.")
+        return value
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
@@ -99,6 +107,15 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
     class Meta:
         model = HostAvailableDate
         fields = ("id", "host", "date")
+
+    def validate_host(self, value):
+        """
+        validate the host field
+            - user cant change host of date
+        """
+        if value.account != self.context["request"].user:
+            raise serializers.ValidationError("Bad value.")
+        return value
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
