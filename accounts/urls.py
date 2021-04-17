@@ -21,6 +21,7 @@ class NestedDefaultRouter(NestedRouterMixin, DefaultRouter):
 router = NestedDefaultRouter()
 router.register(r"accounts", AccountsViewSet)
 router.register(r"dogs", DogProfileViewSet)
+router.register(r"available-date", HostAvailableDateViewSet)
 router.register(r"profilehost", HostProfileViewSet).register(
     r"available-date",
     HostAvailableDateViewSet,

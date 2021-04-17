@@ -174,7 +174,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query dog
     """
 
-    permission_classes = [DogOwnerPermission]
+    permission_classes = [DogOwnerPermission&IsAuthenticated]
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -187,7 +187,7 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query customer
     """
 
-    permission_classes = [OwnProfilePermission]
+    permission_classes = [OwnProfilePermission&IsAuthenticated]
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
@@ -201,7 +201,7 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query host
     """
 
-    permission_classes = [OwnProfilePermission]
+    permission_classes = [OwnProfilePermission&IsAuthenticated]
     queryset = Host.objects.all()
     serializer_class = HostProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
@@ -215,7 +215,7 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for manage host avalilable date
     """
 
-    permission_classes = [AvailableDateOwnPermission]
+    permission_classes = [AvailableDateOwnPermission&IsAuthenticated]
     queryset = HostAvailableDate.objects.all()
     serializer_class = HostAvailableDateSerializer
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
