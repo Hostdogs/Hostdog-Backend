@@ -40,8 +40,7 @@ class IsOwnerOrAdmin(BasePermission):
         user = request.user
         return user and user.is_authenticated and (user.is_staff or obj == user)
 
-
-class IsDogOwnerOrReadOnly(BasePermission):
+class DogOwnerPermission(BasePermission):
     """
     - Allow only dog owner to update or partial-update their dog
     - Only dog owner can create their dog on their profile
@@ -52,11 +51,6 @@ class IsDogOwnerOrReadOnly(BasePermission):
     message = "Permission failed!"
 
     def has_permission(self, request, view):
-        print(view.action, "Dog")
-        if not request.user.is_authenticated:
-            return False
-        if request.method in SAFE_METHODS:
-            return True
         if view.action == "create":
             parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
             if (
@@ -64,17 +58,13 @@ class IsDogOwnerOrReadOnly(BasePermission):
                 and int(parent_lookup_customer) != request.user.id
             ):
                 return False
-            return int(request.data.get("customer")) == request.user.id
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        if view.action in {"update", "partial_update"}:
-            customer = int(request.data.get("customer"))
-            if customer is not None and customer != obj.customer.account.id:
-                return False
         return obj.customer.account == request.user
+
 
 class OwnProfilePermission(BasePermission):
     """
@@ -165,7 +155,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query dog
     """
 
-    permission_classes = [IsDogOwnerOrReadOnly]
+    permission_classes = [DogOwnerPermission]
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
