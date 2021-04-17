@@ -208,7 +208,16 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     http_method_names = ["get", "put", "patch", "head", "options"]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^first_name", r"^last_name"]
-    filterset_fields = ["host_rating", "host_area", "host_schedule"]   
+    filterset_fields = ["host_rating", "host_area", "host_schedule"]
+
+    def get_queryset(self):
+        dist = self.request.query_params.get("distance")
+        if dist is not None:
+            customer = Customer.objects.get(account=self.request.user)
+            lat = customer.latitude
+            long = customer.longitude
+            return Host.nearest_host.nearest_host_within_x_km(current_lat=lat, current_long=long, x_km=dist)
+        return super().get_queryset()   
 
 
 class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
