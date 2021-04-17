@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import (
     AbstractUser,
 )
+from django.db.models import F
+from geopy import distance
 
 # Create your models here.
 class Accounts(AbstractUser):
@@ -63,7 +65,6 @@ class Host(models.Model):
 
     def __str__(self):
         return str(self.account)
-
 
 class Customer(models.Model):
     """
