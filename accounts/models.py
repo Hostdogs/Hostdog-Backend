@@ -75,7 +75,6 @@ class Host(models.Model):
     host_max = models.IntegerField(default=0)
     host_avaliable = models.IntegerField(default=0)
     host_area = models.FloatField(default=0.0)
-    host_schedule = models.TextField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
@@ -133,7 +132,7 @@ class Dog(models.Model):
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     customer = models.ForeignKey(
-        Customer, related_name="dogs", on_delete=models.CASCADE
+        Customer, related_name="dogs_of_customer", on_delete=models.CASCADE
     )
     picture = models.ImageField(
         verbose_name=_("Dog's image"), upload_to="dog/", blank=True

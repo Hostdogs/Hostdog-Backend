@@ -170,7 +170,6 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_max",
             "available_dates",
             "host_area",
-            "host_schedule",
             "address",
             "mobile",
             "dob",
