@@ -1,11 +1,13 @@
 from django.db import models
 import datetime
+from django.urls.conf import path
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import (
     AbstractUser,
 )
 from django.db.models import F
 from django.db.models.functions import Radians, Power, Sin, Cos, ATan2, Sqrt, Radians
+from uuid import uuid4
 
 # Create your models here.
 class Accounts(AbstractUser):
@@ -59,10 +61,14 @@ class Host(models.Model):
         -store host info about hostdog
     """
 
+    def path_and_rename(instance, filename):
+        extension = filename.split('.')[-1]
+        return f"hosts/{uuid4().hex}.{extension}"
+
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
     picture = models.ImageField(
-        verbose_name=_("Host's image"), upload_to="host/", blank=True
+        verbose_name=_("Host's image"), upload_to=path_and_rename, blank=True
     )
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
@@ -96,10 +102,14 @@ class Customer(models.Model):
         -store customer info about hostdog
     """
 
+    def path_and_rename(instance, filename):
+        extension = filename.split('.')[-1]
+        return f"customers/{uuid4().hex}.{extension}"
+
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
     picture = models.ImageField(
-        verbose_name=_("Customer's image"), upload_to="customer/", blank=True
+        verbose_name=_("Customer's image"), upload_to=path_and_rename, blank=True
     )
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
@@ -129,12 +139,16 @@ class Dog(models.Model):
         -store dog info
     """
 
+    def path_and_rename(instance, filename):
+        extension = filename.split('.')[-1]
+        return f"dogs/{uuid4().hex}.{extension}"
+
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     customer = models.ForeignKey(
         Customer, related_name="dogs_of_customer", on_delete=models.CASCADE
     )
     picture = models.ImageField(
-        verbose_name=_("Dog's image"), upload_to="dog/", blank=True
+        verbose_name=_("Dog's image"), upload_to=path_and_rename, blank=True
     )
     dog_name = models.CharField(max_length=50)
     gender = models.CharField(

@@ -218,10 +218,10 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = Host.nearest_host.filter(
             available_dates__date__isnull=False
         ).distinct()
-        customer = Customer.objects.get(account=self.request.user)
         print(dist, weekday, date, date_range, area_range)
         print(queryset)
         if dist:
+            customer = Customer.objects.get(account=self.request.user)
             lat = customer.latitude
             long = customer.longitude
             queryset = queryset.nearest_host_within_x_km(
