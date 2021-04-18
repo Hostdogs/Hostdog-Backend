@@ -21,6 +21,7 @@ from rest_framework.permissions import (
     IsAdminUser,
     SAFE_METHODS,
 )
+from datetime import date, timedelta, datetime
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -212,13 +213,14 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         dist = self.request.query_params.get("distance")
         weekday = self.request.query_params.getlist("weekday")
-        date = self.request.query_params.getlist("date")
+        exact_date = self.request.query_params.getlist("date")
         date_range = self.request.query_params.getlist("date_range")
+        date_full_range = self.request.query_params.getlist("date_full_range")
         area_range = self.request.query_params.getlist("area_range")
         queryset = Host.nearest_host.filter(
             available_dates__date__isnull=False
         ).distinct()
-        print(dist, weekday, date, date_range, area_range)
+        print(dist, weekday, exact_date, date_range, area_range)
         print(queryset)
         if dist:
             customer = Customer.objects.get(account=self.request.user)
@@ -229,8 +231,16 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             )
         if weekday:
             queryset = queryset.filter(available_dates__date__iso_week_day__in=weekday)
-        if date:
-            queryset = queryset.filter(available_dates__date=date)
+        if exact_date:
+            queryset = queryset.filter(available_dates__date__in=date)
+        if len(date_full_range) >= 2:
+            start_date_string, end_date_string = date_full_range[:2]
+            start_date = datetime.strptime(start_date_string, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_string, "%Y-%m-%d").date()
+            delta = end_date - start_date
+            all_date_within_interval = [start_date + timedelta(days=i) for i in range(delta.days + 1)]
+            for wanted_date in all_date_within_interval:
+                queryset = queryset.filter(available_dates__date=wanted_date)
         if len(date_range) >= 2:
             date_range_interval = date_range[:2]
             queryset = queryset.filter(available_dates__date__range=date_range_interval)
