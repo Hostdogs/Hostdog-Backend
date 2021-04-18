@@ -21,7 +21,6 @@ from rest_framework.permissions import (
     IsAdminUser,
     SAFE_METHODS,
 )
-from geopy import distance
 
 
 class IsOwnerOrAdmin(BasePermission):
