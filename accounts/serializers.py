@@ -156,7 +156,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
     """
 
     available_dates = HostAvailableDateSerializer(read_only=True, many=True)
-
+    distance = serializers.SerializerMethodField()
     class Meta:
         model = Host
         fields = (
@@ -175,4 +175,13 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "dob",
             "latitude",
             "longitude",
+            "distance"
         )
+
+    def get_distance(self, validated_data):
+        try:
+            distance = validated_data.distance
+        except AttributeError as e:
+            print(e)
+            return "-"
+        return distance
