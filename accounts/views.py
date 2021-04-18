@@ -21,7 +21,6 @@ from rest_framework.permissions import (
     IsAdminUser,
     SAFE_METHODS,
 )
-from geopy import distance
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -175,7 +174,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query dog
     """
 
-    permission_classes = [DogOwnerPermission&IsAuthenticated]
+    permission_classes = [DogOwnerPermission & IsAuthenticated]
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -188,7 +187,7 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query customer
     """
 
-    permission_classes = [OwnProfilePermission&IsAuthenticated]
+    permission_classes = [OwnProfilePermission & IsAuthenticated]
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
@@ -202,13 +201,43 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query host
     """
 
-    permission_classes = [OwnProfilePermission&IsAuthenticated]
-    queryset = Host.objects.all()
+    permission_classes = [OwnProfilePermission & IsAuthenticated]
+    queryset = Host.nearest_host.all()
     serializer_class = HostProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^first_name", r"^last_name"]
-    filterset_fields = ["host_rating", "host_area", "host_schedule"]   
+    filterset_fields = ["host_rating", "host_area"]
+
+    def get_queryset(self):
+        dist = self.request.query_params.get("distance")
+        weekday = self.request.query_params.getlist("weekday")
+        date = self.request.query_params.getlist("date")
+        date_range = self.request.query_params.getlist("date_range")
+        area_range = self.request.query_params.getlist("area_range")
+        queryset = Host.nearest_host.filter(
+            available_dates__date__isnull=False
+        ).distinct()
+        customer = Customer.objects.get(account=self.request.user)
+        print(dist, weekday, date, date_range, area_range)
+        print(queryset)
+        if dist:
+            lat = customer.latitude
+            long = customer.longitude
+            queryset = queryset.nearest_host_within_x_km(
+                current_lat=lat, current_long=long, x_km=dist
+            )
+        if weekday:
+            queryset = queryset.filter(available_dates__date__iso_week_day__in=weekday)
+        if date:
+            queryset = queryset.filter(available_dates__date=date)
+        if len(date_range) >= 2:
+            date_range_interval = date_range[:2]
+            queryset = queryset.filter(available_dates__date__range=date_range_interval)
+        if len(area_range) >= 2:
+            area_range_interval = area_range[:2]
+            queryset = queryset.filter(host_area__range=area_range_interval)
+        return queryset
 
 
 class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -216,7 +245,7 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for manage host avalilable date
     """
 
-    permission_classes = [AvailableDateOwnPermission&IsAuthenticated]
+    permission_classes = [AvailableDateOwnPermission & IsAuthenticated]
     queryset = HostAvailableDate.objects.all()
     serializer_class = HostAvailableDateSerializer
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]

@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
     AbstractUser,
 )
 from django.db.models import F
-from geopy import distance
+from django.db.models.functions import Radians, Power, Sin, Cos, ATan2, Sqrt, Radians
 
 # Create your models here.
 class Accounts(AbstractUser):
@@ -34,6 +34,25 @@ class Accounts(AbstractUser):
         return self.username
 
 
+class NearestHost(models.QuerySet):
+    """
+    QuerySet for query nearest host within x kilometer
+    """
+
+    def nearest_host_within_x_km(self, current_lat, current_long, x_km):
+        """
+        Greatest circle distance formula
+        """
+        dlat = Radians(F("latitude") - current_lat)
+        dlong = Radians(F("longitude") - current_long)
+        a = Power(Sin(dlat / 2), 2) + Cos(Radians(current_lat)) * Cos(
+            Radians(F("latitude"))
+        ) * Power(Sin(dlong / 2), 2)
+        c = 2 * ATan2(Sqrt(a), Sqrt(1 - a))
+        d = 6371 * c
+        return self.annotate(distance=d).order_by("distance").filter(distance__lt=x_km)
+
+
 class Host(models.Model):
     """
     Host profile model
@@ -56,12 +75,17 @@ class Host(models.Model):
     host_max = models.IntegerField(default=0)
     host_avaliable = models.IntegerField(default=0)
     host_area = models.FloatField(default=0.0)
-    host_schedule = models.TextField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    objects = models.Manager()
+    nearest_host = NearestHost.as_manager()
 
     def __str__(self):
         return str(self.account)
@@ -88,8 +112,12 @@ class Customer(models.Model):
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
 
     def __str__(self):
         return str(self.account)
@@ -102,7 +130,9 @@ class Dog(models.Model):
     """
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    customer = models.ForeignKey(Customer, related_name="dogs", on_delete=models.CASCADE)
+    customer = models.ForeignKey(
+        Customer, related_name="dogs_of_customer", on_delete=models.CASCADE
+    )
     picture = models.ImageField(
         verbose_name=_("Dog's image"), upload_to="dog/", blank=True
     )
@@ -126,7 +156,9 @@ class HostAvailableDate(models.Model):
     Host available date model
     """
 
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="available_dates")
+    host = models.ForeignKey(
+        Host, on_delete=models.CASCADE, related_name="available_dates"
+    )
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
