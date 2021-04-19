@@ -1,5 +1,13 @@
-from .serializers import ServiceSerializer,MealSerializer
-from .models import Service,Meal
+from .serializers import (ServiceSerializer,
+                        MealSerializer,
+                        HostServiceSerializer,
+                        ChatSerializer
+                        )
+from .models import (Service,
+                    Meal,
+                    HostService,
+                    Chat
+                    )
 from rest_framework import generics, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -14,6 +22,17 @@ class MealViewSet(viewsets.ModelViewSet):
     serializer_class = MealSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['host']
+
+class HostServiceViewSet(viewsets.ModelViewSet):
+    queryset = HostService.objects.all()
+    serializer_class = HostServiceSerializer
+
+class ChatViewSet(viewsets.ModelViewSet):
+    queryset = Chat.objects.all()#.order_by('chat_date_time')
+    serializer_class = ChatSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['customer','host']
+
 
 
    
