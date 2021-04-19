@@ -13,7 +13,7 @@ class TestModel(TestCase):
 
     @classmethod
     def setUpTestData(self):
-        acc_001 = Accounts.objects.create(
+        acc_005 = Accounts.objects.create(
             is_superuser=False,
             password='123123123',
             last_login='2021-04-13 14:37:50.965870+00:00',
@@ -25,10 +25,10 @@ class TestModel(TestCase):
             is_host=False
         )
 
-        host_001 = Host.objects.create(
+        host_002 = Host.objects.create(
             first_name='first',
             last_name='last',
-            account_id=acc_001.id,
+            account_id=acc_005.id,
             gender='Female',
             host_bio='host_bio',
             host_rating=4.5,
@@ -47,12 +47,12 @@ class TestModel(TestCase):
         meal_001 = Meal.objects.create(
             meal_type='meal_type',
             meal_price=24.132,
-            host_id=host_001.account_id
+            host_id=host_002.account_id
             
         )
         
     def test_meal(self):
-        meal = Meal.objects.get(host_id = 1)
+        meal = Meal.objects.get(host_id = 2)
 
         host_id = meal.host_id
         meal_type = f'{meal.meal_type}'
