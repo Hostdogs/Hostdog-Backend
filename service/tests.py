@@ -36,7 +36,6 @@ class TestModel(TestCase):
             host_max=3,
             host_avaliable=1,
             host_area=100,
-            host_schedule='host_schedule',
             address='address',
             mobile='0812345678',
             dob='2021-04-13',
@@ -52,7 +51,7 @@ class TestModel(TestCase):
         )
         
     def test_meal(self):
-        meal = Meal.objects.get(host_id = 1)
+        meal = Meal.objects.get(host_id=5)
 
         host_id = meal.host_id
         meal_type = f'{meal.meal_type}'

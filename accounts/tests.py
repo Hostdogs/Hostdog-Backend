@@ -85,7 +85,6 @@ class TestModel(TestCase):
             gender='Female',
             host_bio='host_bio',
             host_rating=4.5,
-            host_schedule='host_schedule'
         )
         
         dog_001 = Dog.objects.create(
@@ -161,7 +160,6 @@ class TestModel(TestCase):
         gender = f'{host.gender}'
         host_bio = f'{host.host_bio}'
         host_rating = host.host_rating
-        host_schedule = f'{host.host_schedule}'
 
         word = str(host)
         self.assertEqual(word,str(host))
@@ -171,7 +169,6 @@ class TestModel(TestCase):
         self.assertEqual(gender,'Female')
         self.assertEqual(host_bio,'host_bio')
         self.assertEqual(host_rating,4.5)
-        self.assertEqual(host_schedule,'host_schedule')
     
     def test_dog(self):
         dog = Dog.objects.get(customer_id = 1)
