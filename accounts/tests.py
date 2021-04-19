@@ -1,74 +1,78 @@
-from django.test import TestCase
+from django.test import TestCase,Client
+from django.urls import reverse
 from django.contrib.auth.models import (
     AbstractUser,
 )
 from accounts.models import Accounts, Customer, Host, Dog
-from rest_framework.test import APITestCase
-import datetime
+from accounts.views import AccountsViewSet,AuthToken
+from rest_framework.test import APITestCase,APIClient
 
+from django.utils import timezone
+import pytz
+import datetime
+#py manage.py makemigrations
+#py manage.py migrate
+#coverage run --omit="*/hostdog/*" manage.py test
+#coverage html
 class TestModel(TestCase):
 
     @classmethod
     def setUpTestData(cls):
         
         acc_001 = Accounts.objects.create(
-            id = 1,
             is_superuser=False,
             password='123123123',
-            last_login='2021-04-12',
+            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User001',
             email='account@email.com',
             is_active=True,
             is_staff=False,
-            date_joined='2021-04-12',
+            date_joined='2021-04-13 14:37:50.965870+00:00',
             is_host=True
         )
         acc_002 = Accounts(
-            #id = 2,
             is_superuser=False,
             password='123123123',
-            last_login='2021-04-12',
+            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User002',
             email='account@email.com',
             is_active=True,
             is_staff=False,
-            date_joined='2021-04-12',
+            date_joined='2021-04-13 14:37:50.965870+00:00',
             is_host=False
         )
         acc_003 = Accounts(
-            #id = 3,
             is_superuser=False,
             password='123123123',
-            last_login='2021-04-12',
+            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User003',
             email='account@email.com',
             is_active=True,
             is_staff=False,
-            date_joined='2021-04-12',
+            date_joined='2021-04-13 14:37:50.965870+00:00',
             is_host=True
         )
         acc_002.save()
         acc_003.save()
         acc_004 = Accounts.objects.create(
-            id = 4,
             is_superuser=False,
             password='123123123',
-            last_login='2021-04-12',
+            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User004',
             email='account@email.com',
             is_active=True,
             is_staff=False,
-            date_joined='2021-04-12',
+            date_joined='2021-04-13 14:37:50.965870+00:00',
             is_host=True
         )
         cus_001 = Customer.objects.create(
             first_name='first',
             last_name='last',
-            account_id=1,
+            account_id=acc_001.id,
             gender='Male',
             address='address',
             mobile='0812345678',
-            dob='2021-04-12',
+            dob='2021-04-13',
             customer_bio='customer_bio',
             customer_dog_count=3,
             customer_hosted_count=4
@@ -77,21 +81,20 @@ class TestModel(TestCase):
         host_001 = Host.objects.create(
             first_name='first',
             last_name='last',
-            account_id=4,
+            account_id=acc_002.id,
             gender='Female',
             host_bio='host_bio',
             host_rating=4.5,
-            host_schedule='host_schedule'
         )
         
         dog_001 = Dog.objects.create(
             gender='Male',
-            customer_id=1,
+            customer_id=cus_001.account_id,
             dog_name='dog_name',
             dog_bio='dog_bio',
             dog_status='dog_status',
             dog_create_date='2021-04-13',
-            dog_dob='2021-04-12',
+            dog_dob='2021-04-13',
             dog_breed='dog_breed',
             dog_weight=251.32
         )
@@ -113,12 +116,12 @@ class TestModel(TestCase):
         self.assertEqual(word,username)
         self.assertFalse(is_superuser)
         self.assertEqual(password,'123123123')
-        self.assertEqual(last_login,'2021-04-12 00:00:00+00:00')
+        self.assertEqual(last_login,'2021-04-13 14:37:50.965870+00:00')
         self.assertEqual(username,'test_User001')
         self.assertEqual(email,'account@email.com')
         self.assertTrue(is_active)
         self.assertFalse(is_staff)
-        self.assertEqual(date_joined,'2021-04-12 00:00:00+00:00')
+        self.assertEqual(date_joined,'2021-04-13 14:37:50.965870+00:00')
         self.assertTrue(is_host)
 
     def test_customer(self):
@@ -143,13 +146,13 @@ class TestModel(TestCase):
         self.assertEqual(gender,'Male')
         self.assertEqual(address,'address')
         self.assertEqual(mobile,'0812345678')
-        self.assertEqual(dob,'2021-04-12')
+        self.assertEqual(dob,'2021-04-13')
         self.assertEqual(customer_bio,'customer_bio')
         self.assertEqual(customer_dog_count,3)
         self.assertEqual(customer_hosted_count,4)
 
     def test_host(self):
-        host = Host.objects.get(account_id=4)
+        host = Host.objects.get(account_id=2)
 
         first_name = f'{host.first_name}'
         last_name = f'{host.last_name}'
@@ -157,17 +160,15 @@ class TestModel(TestCase):
         gender = f'{host.gender}'
         host_bio = f'{host.host_bio}'
         host_rating = host.host_rating
-        host_schedule = f'{host.host_schedule}'
 
         word = str(host)
         self.assertEqual(word,str(host))
         self.assertEqual(first_name,'first')
         self.assertEqual(last_name,'last')
-        self.assertEqual(account_id,4)
+        self.assertEqual(account_id,2)
         self.assertEqual(gender,'Female')
         self.assertEqual(host_bio,'host_bio')
         self.assertEqual(host_rating,4.5)
-        self.assertEqual(host_schedule,'host_schedule')
     
     def test_dog(self):
         dog = Dog.objects.get(customer_id = 1)
@@ -189,8 +190,20 @@ class TestModel(TestCase):
         self.assertEqual(dog_name,'dog_name')
         self.assertEqual(dog_bio,'dog_bio')
         self.assertEqual(dog_status,'dog_status')
-        self.assertEqual(dog_create_date,'2021-04-13')
-        self.assertEqual(dog_dob,'2021-04-12')
+        #self.assertEqual(dog_create_date,'2021-04-13')
+        self.assertEqual(dog_dob,'2021-04-13')
         self.assertEqual(dog_breed,'dog_breed')
         self.assertEqual(dog_weight,251.32)
-       
+
+'''
+class TestView(APITestCase):
+
+    @classmethod
+    def setUp(self):
+        
+
+    def test_view_GET(self):
+'''        
+
+
+        

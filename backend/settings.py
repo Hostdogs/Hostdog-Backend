@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import django_heroku
+
+ON_HEROKU = os.environ.get("ON_HEROKU")
 
 load_dotenv()
 
@@ -27,9 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = str(os.getenv("SECRET_KEY"))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False if ON_HEROKU else True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["hostdog-backend.herokuapp.com"]
 
 AUTH_USER_MODEL = "accounts.Accounts"
 
@@ -49,6 +52,9 @@ INSTALLED_APPS = [
     "accounts",
     "service",
 ]
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -92,26 +98,26 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 if os.environ.get("GITHUB_WORKFLOW"):
     DATABASES = {
-        "default":{
+        "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": "github_actions",
             "USER": "postgres",
             "PASSWORD": "postgres",
             "HOST": "127.0.0.1",
-            "PORT": "5432"
+            "PORT": "5432",
         }
     }
 else:
     DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "Hostdog",
-        "USER": "postgres",
-        "PASSWORD": str(os.getenv("PASSWORD")),
-        "HOST": "127.0.0.1",
-        "PORT": "5432"
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "Hostdog",
+            "USER": "postgres",
+            "PASSWORD": str(os.getenv("PASSWORD")),
+            "HOST": "127.0.0.1",
+            "PORT": "5432",
+        }
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -157,10 +163,14 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
 }
+
+django_heroku.settings(locals())

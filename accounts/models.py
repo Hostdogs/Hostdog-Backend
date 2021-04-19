@@ -1,9 +1,13 @@
 from django.db import models
 import datetime
+from django.urls.conf import path
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import (
     AbstractUser,
 )
+from django.db.models import F
+from django.db.models.functions import Radians, Power, Sin, Cos, ATan2, Sqrt, Radians
+from uuid import uuid4
 
 # Create your models here.
 class Accounts(AbstractUser):
@@ -32,16 +36,39 @@ class Accounts(AbstractUser):
         return self.username
 
 
+class NearestHost(models.QuerySet):
+    """
+    QuerySet for query nearest host within x kilometer
+    """
+
+    def nearest_host_within_x_km(self, current_lat, current_long, x_km):
+        """
+        Greatest circle distance formula
+        """
+        dlat = Radians(F("latitude") - current_lat)
+        dlong = Radians(F("longitude") - current_long)
+        a = Power(Sin(dlat / 2), 2) + Cos(Radians(current_lat)) * Cos(
+            Radians(F("latitude"))
+        ) * Power(Sin(dlong / 2), 2)
+        c = 2 * ATan2(Sqrt(a), Sqrt(1 - a))
+        d = 6371 * c
+        return self.annotate(distance=d).order_by("distance").filter(distance__lt=x_km)
+
+
 class Host(models.Model):
     """
     Host profile model
         -store host info about hostdog
     """
 
+    def path_and_rename(instance, filename):
+        extension = filename.split('.')[-1]
+        return f"hosts/{uuid4().hex}.{extension}"
+
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
     picture = models.ImageField(
-        verbose_name=_("Host's image"), upload_to="host/", blank=True
+        verbose_name=_("Host's image"), upload_to=path_and_rename, blank=True
     )
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
@@ -54,14 +81,20 @@ class Host(models.Model):
     host_max = models.IntegerField(default=0)
     host_avaliable = models.IntegerField(default=0)
     host_area = models.FloatField(default=0.0)
-    host_schedule = models.TextField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    objects = models.Manager()
+    nearest_host = NearestHost.as_manager()
 
     def __str__(self):
         return str(self.account)
-
 
 class Customer(models.Model):
     """
@@ -69,10 +102,14 @@ class Customer(models.Model):
         -store customer info about hostdog
     """
 
+    def path_and_rename(instance, filename):
+        extension = filename.split('.')[-1]
+        return f"customers/{uuid4().hex}.{extension}"
+
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
     picture = models.ImageField(
-        verbose_name=_("Customer's image"), upload_to="customer/", blank=True
+        verbose_name=_("Customer's image"), upload_to=path_and_rename, blank=True
     )
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=30, default="")
@@ -85,6 +122,12 @@ class Customer(models.Model):
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
 
     def __str__(self):
         return str(self.account)
@@ -96,16 +139,22 @@ class Dog(models.Model):
         -store dog info
     """
 
+    def path_and_rename(instance, filename):
+        extension = filename.split('.')[-1]
+        return f"dogs/{uuid4().hex}.{extension}"
+
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    customer = models.ForeignKey(Customer, related_name="dogs", on_delete=models.CASCADE)
+    customer = models.ForeignKey(
+        Customer, related_name="dogs_of_customer", on_delete=models.CASCADE
+    )
     picture = models.ImageField(
-        verbose_name=_("Dog's image"), upload_to="dog/", blank=True
+        verbose_name=_("Dog's image"), upload_to=path_and_rename, blank=True
     )
     dog_name = models.CharField(max_length=50)
     gender = models.CharField(
         max_length=10, blank=False, default="Male", choices=GENDER_OPTIONS
     )
-    dog_bio = models.TextField(max_length=100)
+    dog_bio = models.TextField(max_length=100, blank=True)
     dog_status = models.CharField(max_length=20)
     dog_create_date = models.DateField(auto_now_add=True)
     dog_dob = models.DateField(default=datetime.date.today)
@@ -114,3 +163,17 @@ class Dog(models.Model):
 
     def __str__(self):
         return self.dog_name
+
+
+class HostAvailableDate(models.Model):
+    """
+    Host available date model
+    """
+
+    host = models.ForeignKey(
+        Host, on_delete=models.CASCADE, related_name="available_dates"
+    )
+    date = models.DateField(default=datetime.date.today)
+
+    def __str__(self):
+        return self.date

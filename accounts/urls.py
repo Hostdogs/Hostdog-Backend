@@ -1,6 +1,7 @@
 from accounts.views import (
     AuthToken,
     CustomerProfileViewSet,
+    HostAvailableDateViewSet,
     HostProfileViewSet,
     AccountsViewSet,
     DogProfileViewSet,
@@ -20,14 +21,19 @@ class NestedDefaultRouter(NestedRouterMixin, DefaultRouter):
 router = NestedDefaultRouter()
 router.register(r"accounts", AccountsViewSet)
 router.register(r"dogs", DogProfileViewSet)
-router.register(r"profilehost", HostProfileViewSet)
+router.register(r"available-date", HostAvailableDateViewSet)
+router.register(r"profilehost", HostProfileViewSet).register(
+    r"available-date",
+    HostAvailableDateViewSet,
+    basename="profilehost",
+    parents_query_lookups=["host"]
+)
 router.register(r"profilecustomer", CustomerProfileViewSet).register(
     r"dogs",
     DogProfileViewSet,
-    basename="profile-customer-dogs",
-    parents_query_lookups=["profilecustomer"]
+    basename="profilecustomer-dogs",
+    parents_query_lookups=["customer"]
 )
-
 urlpatterns = [
     path("token/", AuthToken.as_view())
 ]

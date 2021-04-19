@@ -7,3 +7,7 @@ staticfiles
 *.sqlite3
 .env
 htmlcov/
+.coverage
+*.jpeg
+*.jpg
+*.png
