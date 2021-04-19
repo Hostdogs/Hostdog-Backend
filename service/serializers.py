@@ -1,11 +1,12 @@
 from rest_framework import serializers
-from .models import Service,Meal,HostService,Chat
+from .models import Service, Meal, HostService, Chat
 
 
 class ServiceSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
     """
+
     class Meta:
         model = Service
         fields = (
@@ -29,6 +30,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             "service_bio",
         )
 
+
 class MealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meal
@@ -37,6 +39,7 @@ class MealSerializer(serializers.ModelSerializer):
             "meal_type",
             "meal_price",
         )
+
 
 class HostServiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,18 +53,18 @@ class HostServiceSerializer(serializers.ModelSerializer):
             "is_deliver_dog",
             "price_deliver_dog",
             "is_bath_dog",
-            "price_bath_dog"
+            "price_bath_dog",
         )
 
+
 class ChatSerializer(serializers.ModelSerializer):
-    class Meta: 
+    class Meta:
         model = Chat
         fields = (
-            "id", 
+            "id",
             "customer",
             "host",
             "chat_date_time",
             "chat_data",
-            "chat_send_by_host"
+            "chat_send_by_host",
         )
-
