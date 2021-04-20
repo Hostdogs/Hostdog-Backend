@@ -1,8 +1,6 @@
 from django.test import TestCase,Client
 from django.urls import reverse
-from django.contrib.auth.models import (
-    AbstractUser,
-)
+x
 from accounts.models import Accounts, Customer, Host, Dog
 from accounts.views import AccountsViewSet,AuthToken
 from rest_framework.test import APITestCase,APIClient
