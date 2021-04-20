@@ -107,8 +107,15 @@ class TestModel(TestCase):
             dog_breed='dog_breed',
             dog_weight=251.32
         )
-        near = NearestHost()
-        near.nearest_host_within_x_km(10,10,2)
+        dog_001.path_and_rename('filename')
+
+        avaDate_001 = HostAvailableDate.objects.create(
+            date='2021-04-20',
+            host_id=host_001.account_id
+        )
+        
+        #near = NearestHost()
+        #near.nearest_host_within_x_km(10,10,2)
         
 
     def test_account(self):
@@ -224,6 +231,13 @@ class TestModel(TestCase):
         self.assertEqual(dog_dob,'2021-04-13')
         self.assertEqual(dog_breed,'dog_breed')
         self.assertEqual(dog_weight,251.32)
+
+    def test_host_available_date(self):
+        ava = HostAvailableDate.objects.get(host_id = 2)
+
+        word = str(ava)
+        self.assertEqual(word,str(ava))
+
 
 '''
 class TestView(APITestCase):
