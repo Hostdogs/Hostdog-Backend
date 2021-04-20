@@ -1,7 +1,7 @@
 from django.test import TestCase,Client
 from django.urls import reverse
-x
-from accounts.models import Accounts, Customer, Host, Dog
+
+from accounts.models import Accounts , Customer , Host , Dog , NearestHost , HostAvailableDate
 from accounts.views import AccountsViewSet,AuthToken
 from rest_framework.test import APITestCase,APIClient
 
@@ -75,6 +75,7 @@ class TestModel(TestCase):
             customer_dog_count=3,
             customer_hosted_count=4
         )
+        cus_001.path_and_rename('filename')
 
         host_001 = Host.objects.create(
             first_name='first',
@@ -83,7 +84,17 @@ class TestModel(TestCase):
             gender='Female',
             host_bio='host_bio',
             host_rating=4.5,
+            host_hosted_count=10,
+            host_max=3,
+            host_avaliable=1,
+            host_area=100,
+            address='address',
+            mobile='0812345678',
+            dob='2021-04-13',
+            latitude=10,
+            longitude=10
         )
+        host_001.path_and_rename('filename')
         
         dog_001 = Dog.objects.create(
             gender='Male',
@@ -96,6 +107,9 @@ class TestModel(TestCase):
             dog_breed='dog_breed',
             dog_weight=251.32
         )
+        near = NearestHost()
+        near.nearest_host_within_x_km(10,10,2)
+        
 
     def test_account(self):
         acc = Accounts.objects.get(id = 1)
@@ -158,6 +172,15 @@ class TestModel(TestCase):
         gender = f'{host.gender}'
         host_bio = f'{host.host_bio}'
         host_rating = host.host_rating
+        host_hosted_count = host.host_hosted_count
+        host_max = host.host_max
+        host_avaliable = host.host_avaliable
+        host_area = host.host_area
+        address = f'{host.address}'
+        mobile = f'{host.mobile}'
+        dob = f'{host.dob}'
+        latitude = host.latitude
+        longitude = host.longitude
 
         word = str(host)
         self.assertEqual(word,str(host))
@@ -167,6 +190,15 @@ class TestModel(TestCase):
         self.assertEqual(gender,'Female')
         self.assertEqual(host_bio,'host_bio')
         self.assertEqual(host_rating,4.5)
+        self.assertEqual(host_hosted_count,10)
+        self.assertEqual(host_max,3)
+        self.assertEqual(host_avaliable,1)
+        self.assertEqual(host_area,100)
+        self.assertEqual(address,'address')
+        self.assertEqual(mobile,'0812345678')
+        self.assertEqual(dob,'2021-04-13')
+        self.assertEqual(latitude,10)
+        self.assertEqual(longitude,10)
     
     def test_dog(self):
         dog = Dog.objects.get(customer_id = 1)
