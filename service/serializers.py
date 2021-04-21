@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service, Meal, HostService, Chat
+from .models import Service, Meal, HostService
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -23,19 +23,19 @@ class ServiceSerializer(serializers.ModelSerializer):
             "service_meal_type",
             "service_meal_per_day",
             "service_meal_weight",
-            "service_is_walk",
-            "service_is_get_dog",
-            "service_is_deliver_dog",
-            "service_is_dog_bath",
+            "is_dog_walk",
+            "is_get_dog",
+            "is_delivery_dog",
+            "is_bath_dog",
             "service_bio",
         )
+        read_only_fields = ("service_status", "service_create_time")
 
 
 class MealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meal
         fields = (
-            "host",
             "meal_type",
             "meal_price",
         )
@@ -46,25 +46,12 @@ class HostServiceSerializer(serializers.ModelSerializer):
         model = HostService
         fields = (
             "host",
-            "is_dog_walk",
             "price_dog_walk",
-            "is_get_dog",
             "price_get_dog",
-            "is_deliver_dog",
             "price_deliver_dog",
-            "is_bath_dog",
             "price_bath_dog",
-        )
-
-
-class ChatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chat
-        fields = (
-            "id",
-            "customer",
-            "host",
-            "chat_date_time",
-            "chat_data",
-            "chat_send_by_host",
+            "enable_dog_walk",
+            "enable_get_dog",
+            "enable_delivery_dog",
+            "enable_bath_dog"
         )

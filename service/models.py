@@ -68,7 +68,7 @@ class Service(models.Model):
     host = models.ForeignKey(Host, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     dog = models.ForeignKey(Dog, on_delete=models.CASCADE)
-    service_status = models.CharField(max_length=10, choices=STATUS)
+    service_status = models.CharField(max_length=40, choices=STATUS)
     service_is_over_night = models.BooleanField(default=False)
     service_create_time = models.DateTimeField(auto_now_add=True)
     service_start_time = models.DateField()
@@ -82,8 +82,9 @@ class Service(models.Model):
     is_get_dog = models.BooleanField(default=False)
     is_delivery_dog = models.BooleanField(default=False)
     is_bath_dog = models.BooleanField(default=False)
+    additional_service = models.OneToOneField(HostService, on_delete=models.CASCADE, related_name="additional_service")
     service_bio = models.TextField(max_length=255, default="")
-    main_status = models.CharField(max_length=20, choices=MAIN_STATUS)
+    main_status = models.CharField(max_length=20, choices=MAIN_STATUS, default="pending")
 
     def __str__(self):
         return f"""Service by {self.host}\n
