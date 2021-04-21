@@ -55,7 +55,7 @@ class DogOwnerPermission(BasePermission):
             parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
             if (
                 parent_lookup_customer is not None
-                and Accounts.objects.get(id=parent_lookup_customer) != request.user.id
+                and Accounts.objects.get(id=parent_lookup_customer) != request.user
             ):
                 return False
         return super().has_permission(request, view)
