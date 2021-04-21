@@ -50,11 +50,12 @@ class Service(models.Model):
     """
     Service model
         - store pending, end, in_progress service
-        - !!! IMPORTANT !!! This model store all of service in hostdog system (Pending service, End service and In progress service)
+        - !!! IMPORTANT !!! This model store all of service in hostdog system (Pending service, Payment, End service and In progress service)
     """
 
     MAIN_STATUS = (
         ("pending", "Pending"),
+        ("payment", "Payment"),
         ("end", "End"),
         ("in_progress", "In progress"),
     )
