@@ -28,6 +28,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             "is_delivery_dog",
             "is_bath_dog",
             "service_bio",
+            "additional_service"
         )
         read_only_fields = ("service_status", "service_create_time")
 
