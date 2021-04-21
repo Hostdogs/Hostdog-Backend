@@ -46,7 +46,6 @@ class DogOwnerPermission(BasePermission):
     """
     - Allow only dog owner to update or partial-update their dog
     - Only dog owner can create their dog on their profile
-    - Anonymous user not allow
     - Allow to  read-only if not owner of the dog
     """
 
