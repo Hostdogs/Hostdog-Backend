@@ -10,5 +10,4 @@ def create_notification(sender, instance, created, **kwargs):
         - After customer select the service and choose everything their want and accept --> Send notification to host
     """
     #if service object is created and main_status field is pending then notification must be send to Host
-    if created :
-        print(sender, instance, created, **kwargs)
+    pass
