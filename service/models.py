@@ -1,25 +1,74 @@
 from django.db import models
 from accounts.models import Host, Customer, Dog, Accounts
-import datetime
-import json
 from django.utils import timezone
 
 
 class Meal(models.Model):
-    host = models.ForeignKey(Host, on_delete=models.CASCADE)
+    """
+    Meal model
+        - food for dog to eat
+        - can add later in production
+        - can adjust the price in production
+    """
+
     meal_type = models.CharField(max_length=50)
     meal_price = models.FloatField()
 
     def __str__(self):
-        return self.meal_type
+        return f"""Meals : {self.meal_type}\n
+                Price : {self.meal_price} Baht
+                """
+
+
+class HostService(models.Model):
+    """
+    Additional service model eg. Dog walk, Dog bath
+        - Host can enable/disable the additional service in their profile or something
+        - Host can adjust the additional service price
+
+    """
+
+    host = models.OneToOneField(Host, on_delete=models.CASCADE, primary_key=True)
+    price_dog_walk = models.FloatField(default=0.0)
+    price_get_dog = models.FloatField(default=0.0)
+    price_deliver_dog = models.FloatField(default=0.0)
+    price_bath_dog = models.FloatField(default=0.0)
+    enable_dog_walk = models.BooleanField(default=True)
+    enable_get_dog = models.BooleanField(default=True)
+    enable_delivery_dog = models.BooleanField(default=True)
+    enable_bath_dog = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f""" Additional service of {self.host}\n
+                    1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n
+                    2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n
+                    3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n
+                    4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"""
 
 
 class Service(models.Model):
+    """
+    Service model
+        - store pending, end, in_progress service
+        - !!! IMPORTANT !!! This model store all of service in hostdog system (Pending service, End service and In progress service)
+    """
 
+    MAIN_STATUS = (
+        ("pending", "Pending"),
+        ("end", "End"),
+        ("in_progress", "In progress"),
+    )
+    STATUS = (
+        ("time_of_service", "Time of service"),
+        ("้host_is_waiting_to_receive_your_dog", "Host is waiting to receive your dog"),
+        ("caring_for_your_dog", "Caring for your dog"),
+        ("come_and_get_your_dog", "Come and get your dog"),
+        ("service_success", "Service success"),
+    )
     host = models.ForeignKey(Host, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    dog = models.OneToOneField(Dog, on_delete=models.CASCADE)
-    service_status = models.CharField(max_length=10)
+    dog = models.ForeignKey(Dog, on_delete=models.CASCADE)
+    service_status = models.CharField(max_length=40, choices=STATUS)
     service_is_over_night = models.BooleanField(default=False)
     service_create_time = models.DateTimeField(auto_now_add=True)
     service_start_time = models.DateField()
@@ -29,28 +78,18 @@ class Service(models.Model):
     service_meal_type = models.ForeignKey(Meal, on_delete=models.CASCADE)
     service_meal_per_day = models.IntegerField()
     service_meal_weight = models.IntegerField()
-    service_is_walk = models.BooleanField(default=False)
-    service_is_get_dog = models.BooleanField(default=False)
-    service_is_deliver_dog = models.BooleanField(default=False)
-    service_is_dog_bath = models.BooleanField(default=False)
-    service_bio = models.TextField(max_length=255, default="")
-
-
-class HostService(models.Model):
-    host = models.OneToOneField(Host, on_delete=models.CASCADE, primary_key=True)
     is_dog_walk = models.BooleanField(default=False)
-    price_dog_walk = models.FloatField(default=0.0)
     is_get_dog = models.BooleanField(default=False)
-    price_get_dog = models.FloatField(default=0.0)
-    is_deliver_dog = models.BooleanField(default=False)
-    price_deliver_dog = models.FloatField(default=0.0)
+    is_delivery_dog = models.BooleanField(default=False)
     is_bath_dog = models.BooleanField(default=False)
-    price_bath_dog = models.FloatField(default=0.0)
+    additional_service = models.OneToOneField(HostService, on_delete=models.CASCADE, related_name="additional_service")
+    service_bio = models.TextField(max_length=255, default="")
+    main_status = models.CharField(max_length=20, choices=MAIN_STATUS, default="pending")
 
-
-class Chat(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE)
-    chat_date_time = models.DateTimeField(auto_now_add=True)
-    chat_data = models.TextField(max_length=100)
-    chat_send_by_host = models.BooleanField(default=False)
+    def __str__(self):
+        return f"""Service by {self.host}\n
+                Customer : {self.customer}\n
+                Dog : {self.dog}\n
+                Status : {self.service_status}\n
+                Main status : {self.main_status}
+                """
