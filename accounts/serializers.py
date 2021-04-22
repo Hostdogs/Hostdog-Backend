@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.generics import RetrieveAPIView
 from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
 
 
@@ -65,11 +66,12 @@ class ChangePasswordSerializer(serializers.Serializer):
 class DogProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for dog model
+        - use with dog view with not nested resource
     """
 
     class Meta:
         model = Dog
-        fields = (
+        fields = [
             "id",
             "customer",
             "picture",
@@ -79,7 +81,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_weight",
             "dog_bio",
             "dog_create_date",
-        )
+        ]
 
         extra_kwargs = {
             "dog_name": {"required": True},
@@ -95,16 +97,47 @@ class DogProfileSerializer(serializers.ModelSerializer):
         return value
 
 
+class DogProfileWithNestedSerializer(serializers.ModelSerializer):
+    """
+    Serializer for dog model
+        - use with dog view with nested resource
+    """
+    class Meta:
+        model = Dog
+        fields = [
+            "id",
+            "customer",
+            "picture",
+            "dog_name",
+            "dog_dob",
+            "dog_breed",
+            "dog_weight",
+            "dog_bio",
+            "dog_create_date",
+            "dog_breed",
+            "dog_dob",
+        ]
+        read_only_fields = [
+            "customer",
+            "dog_create_date"
+        ]
+    
+    def create(self, validated_data):
+        customer = Customer.objects.get(account=self.context["request"].user)
+        dog = Dog.objects.create(customer=customer, **validated_data)
+        return dog
+
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for customer model
+        - use when create customer profile
     """
 
     dogs = DogProfileSerializer(read_only=True, many=True)
 
     class Meta:
         model = Customer
-        fields = (
+        fields = [
             "account",
             "picture",
             "first_name",
@@ -118,7 +151,8 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "latitude",
             "longitude",
             "dogs",
-        )
+        ]
+        read_only_fields = ["account"]
 
 
 class HostAvailableDateSerializer(serializers.ModelSerializer):
@@ -136,7 +170,7 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
             - user cant change host of date
         """
         if value.account != self.context["request"].user:
-            raise serializers.ValidationError("Bad value.")
+            raise serializers.ValidationError("Bad value : Not this user")
         return value
     
     def validate_date(self, value):
@@ -149,6 +183,27 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This date has already been assigned for this host")
         return value
 
+
+class HostAvailableDateWithNestedSerializer(serializers.ModelSerializer):
+    """
+    Serializer for HostAvailable date model
+        - use with host available view with nest resource 
+    """
+    class Meta:
+        model = HostAvailableDate
+        fields = [
+            "id",
+            "host",
+            "date",
+        ]
+        read_only_fields = [
+            "host"
+        ]
+        
+    def create(self, validated_data):
+        host = Host.objects.get(accout=self.context["request"].user)
+        host_available_date = HostAvailableDate.objects.create(host=host, **validated_data)
+        return host_available_date
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """

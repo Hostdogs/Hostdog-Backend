@@ -1,7 +1,9 @@
 from accounts.serializers import (
     AccountSerializer,
     CustomerProfileSerializer,
+    DogProfileWithNestedSerializer,
     HostAvailableDateSerializer,
+    HostAvailableDateWithNestedSerializer,
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
@@ -181,6 +183,14 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^dog_name", r"^dog_breed"]
     filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
 
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        parent_lookup = self.kwargs.get("parent_lookup_customer")
+        if parent_lookup:
+            serializer_class = DogProfileWithNestedSerializer
+        else:
+            serializer_class = DogProfileSerializer
+        return serializer_class
 
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -261,3 +271,12 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^date"]
     filterset_fields = ["date"]
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        parent_lookup = self.kwargs.get("parent_lookup_host")
+        if parent_lookup:
+            serializer_class = HostAvailableDateWithNestedSerializer
+        else:
+            serializer_class = HostAvailableDateSerializer
+        return serializer_class
