@@ -171,7 +171,7 @@ class HostAvailableDate(models.Model):
     """
 
     host = models.ForeignKey(
-        Host, on_delete=models.CASCADE, related_name="available_dates"
+        Host, on_delete=models.CASCADE, related_name="host"
     )
     date = models.DateField(default=datetime.date.today)
 
