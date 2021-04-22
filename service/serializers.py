@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from accounts.models import Customer, HostAvailableDate
 from rest_framework import serializers
 from service.models import Service, Meal, HostService
@@ -50,6 +51,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         host = attrs["host"]
         service_start_time = attrs["service_start_time"]
         service_end_time = attrs["service_end_time"]
+        service_delta = service_end_time - service_start_time
         host_service = HostService.objects.get(host=host)
         if is_dog_walk and not host_service.enable_dog_walk:
             raise serializers.ValidationError(
@@ -67,24 +69,13 @@ class ServiceSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"is_bath_dog": [f"Bad value : is_bath_dog is DISABLE"]}
             )
-        if HostAvailableDate.objects.filter(
-            host=host, date=service_start_time
-        ).exists():
-            raise serializers.ValidationError(
-                {
-                    "service_start_time": [
-                        "Bad value : this service start time is not available for host"
-                    ]
-                }
-            )
-        if HostAvailableDate.objects.filter(host=host, date=service_end_time).exists():
-            raise serializers.ValidationError(
-                {
-                    "service_end_time": [
-                        "Bad value : this service end time is not available for host"
-                    ]
-                }
-            )
+        all_date_within_interval = [service_start_time + timedelta(days=i) for i in range(service_delta.days + 1)]
+        for choose_date in all_date_within_interval:
+            if not HostAvailableDate.objects.filter(host=host, date=choose_date).exists():
+                raise serializers.ValidationError({
+                    "service_start_time": ["Bad value : Date range error"],
+                    "service_end_time": ["Bad value : Date range error"]
+                })
         return super().validate(attrs)
 
 
@@ -137,6 +128,12 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
             "main_status",
         ]
 
+class ServiceResponseSerializer(serializers.Serializer):
+    """
+    Serializer for host to response back to customer
+        - accept service or decline service
+    """
+    accept = serializers.BooleanField(required=True)
 
 class MealSerializer(serializers.ModelSerializer):
     class Meta:

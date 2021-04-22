@@ -1,5 +1,7 @@
+from rest_framework.response import Response
 from service.serializers import (
     ServiceDetailSerializer,
+    ServiceResponseSerializer,
     ServiceSerializer,
     MealSerializer,
     HostServiceSerializer,
@@ -8,6 +10,7 @@ from service.models import Service, Meal, HostService
 from rest_framework import generics, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.decorators import action
 
 
 class IsOwnerAndHost(BasePermission):
@@ -58,9 +61,29 @@ class ServiceViewSet(viewsets.ModelViewSet):
         serializer_class = self.serializer_class
         if self.action == "create":
             serializer_class = ServiceSerializer
+        elif self.action == "response":
+            serializer_class = ServiceResponseSerializer
         else:
             serializer_class = ServiceDetailSerializer
         return serializer_class
+
+    @action(methods=["post"], detail=True, url_path="response", url_name="response")
+    def response(self, request, pk=None):
+        """
+        Accept or Decline customer request
+        """
+        service = self.get_object()
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            response = serializer.data["response"]
+            if response:
+                service.accept()
+                return Response({"success": "Service accepted"}, status=status.HTTP_200_OK)
+            else:
+                service.decline()
+                return Response({"success": "Service decline"}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
 class MealViewSet(viewsets.ModelViewSet):
