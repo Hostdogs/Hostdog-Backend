@@ -1,6 +1,8 @@
 from django.test import TestCase,Client
 from django.urls import reverse
-
+from django.contrib.auth.models import (
+    AbstractUser,
+)
 from accounts.models import Accounts , Customer , Host , Dog , NearestHost , HostAvailableDate
 from accounts.views import AccountsViewSet,AuthToken
 from rest_framework.test import APITestCase,APIClient
@@ -76,6 +78,7 @@ class TestModel(TestCase):
             customer_hosted_count=4
         )
         cus_001.path_and_rename('filename')
+        
 
         host_001 = Host.objects.create(
             first_name='first',
@@ -96,6 +99,7 @@ class TestModel(TestCase):
         )
         host_001.path_and_rename('filename')
         
+
         dog_001 = Dog.objects.create(
             gender='Male',
             customer_id=cus_001.account_id,
@@ -114,9 +118,8 @@ class TestModel(TestCase):
             host_id=host_001.account_id
         )
         
-        #near = NearestHost()
-        #near.nearest_host_within_x_km(10,10,2)
-        
+        near_001 = NearestHost()
+        near_001.nearest_host_within_x_km(5,5,2)
 
     def test_account(self):
         acc = Accounts.objects.get(id = 1)
@@ -238,6 +241,7 @@ class TestModel(TestCase):
         word = str(ava)
         self.assertEqual(word,str(ava))
 
+    
 
 '''
 class TestView(APITestCase):
