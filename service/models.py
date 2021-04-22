@@ -1,6 +1,5 @@
 from django.db import models
-from accounts.models import Host, Customer, Dog, Accounts
-from django.utils import timezone
+from accounts.models import Host, Customer, Dog
 
 
 class Meal(models.Model):
@@ -15,9 +14,7 @@ class Meal(models.Model):
     meal_price = models.FloatField()
 
     def __str__(self):
-        return f"""Meals : {self.meal_type}\n
-                Price : {self.meal_price} Baht
-                """
+        return f"Meals : {self.meal_type}\nPrice : {self.meal_price} Baht"
 
 
 class HostService(models.Model):
@@ -39,11 +36,11 @@ class HostService(models.Model):
     enable_bath_dog = models.BooleanField(default=True)
 
     def __str__(self):
-        return f""" Additional service of {self.host}\n
-                    1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n
-                    2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n
-                    3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n
-                    4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"""
+        return f" Additional service of {self.host}\n"
+        + "1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n"
+        + "2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n"
+        + "3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n"
+        + "4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"
 
 
 class Service(models.Model):
@@ -83,14 +80,18 @@ class Service(models.Model):
     is_get_dog = models.BooleanField(default=False)
     is_delivery_dog = models.BooleanField(default=False)
     is_bath_dog = models.BooleanField(default=False)
-    additional_service = models.OneToOneField(HostService, on_delete=models.CASCADE, related_name="additional_service")
+    additional_service = models.OneToOneField(
+        HostService, on_delete=models.CASCADE, related_name="additional_service"
+    )
     service_bio = models.TextField(max_length=255, default="")
-    main_status = models.CharField(max_length=20, choices=MAIN_STATUS, default="pending")
+    main_status = models.CharField(
+        max_length=20, choices=MAIN_STATUS, default="pending"
+    )
 
     def __str__(self):
-        return f"""Service by {self.host}\n
-                Customer : {self.customer}\n
-                Dog : {self.dog}\n
-                Status : {self.service_status}\n
-                Main status : {self.main_status}
-                """
+        return f"Service by {self.host}\n"
+        + "Customer : {self.customer}\n"
+        + "Dog : {self.dog}\n"
+        + "Status : {self.service_status}\n"
+        + "Main status : {self.main_status}"
+                
