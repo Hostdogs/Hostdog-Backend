@@ -13,6 +13,7 @@ class TestModel(TestCase):
 
     @classmethod
     def setUpTestData(self):
+        """
         acc_005 = Accounts.objects.create(
             is_superuser=False,
             password='123123123',
@@ -42,18 +43,18 @@ class TestModel(TestCase):
             latitude=10,
             longitude=10
         )
-
+        """
         meal_001 = Meal.objects.create(
             meal_type='meal_type',
-            meal_price=24.132,
-            host_id=host_002.account_id
+            meal_price=24.132
+            #host_id=host_002.account_id
             
         )
         
     def test_meal(self):
-        meal = Meal.objects.get(host_id=5)
+        meal = Meal.objects.get(id = 1)
 
-        host_id = meal.host_id
+        #host_id = meal.host_id
         meal_type = f'{meal.meal_type}'
         meal_price = meal.meal_price
 

@@ -16,11 +16,11 @@ class Notifications(models.Model):
     """
 
     customer = models.ForeignKey(
-        Customer, on_delete=models.CASCADE, related_name="customer"
+        Customer, on_delete=models.CASCADE, related_name="notifications_customer"
     )
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="host")
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="notifications_host")
     service = models.ForeignKey(
-        Service, on_delete=models.CASCADE, related_name="service"
+        Service, on_delete=models.CASCADE, related_name="notification_service"
     )
     message = models.CharField(max_length=255)
     read = models.BooleanField(default=False)

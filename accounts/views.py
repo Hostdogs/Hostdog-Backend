@@ -1,7 +1,9 @@
 from accounts.serializers import (
     AccountSerializer,
     CustomerProfileSerializer,
+    DogProfileWithNestedSerializer,
     HostAvailableDateSerializer,
+    HostAvailableDateWithNestedSerializer,
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
@@ -46,7 +48,6 @@ class DogOwnerPermission(BasePermission):
     """
     - Allow only dog owner to update or partial-update their dog
     - Only dog owner can create their dog on their profile
-    - Anonymous user not allow
     - Allow to  read-only if not owner of the dog
     """
 
@@ -55,7 +56,7 @@ class DogOwnerPermission(BasePermission):
             parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
             if (
                 parent_lookup_customer is not None
-                and Accounts.objects.get(id=parent_lookup_customer) != request.user.id
+                and Accounts.objects.get(id=parent_lookup_customer) != request.user
             ):
                 return False
         return super().has_permission(request, view)
@@ -182,6 +183,14 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^dog_name", r"^dog_breed"]
     filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
 
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        parent_lookup = self.kwargs.get("parent_lookup_customer")
+        if parent_lookup:
+            serializer_class = DogProfileWithNestedSerializer
+        else:
+            serializer_class = DogProfileSerializer
+        return serializer_class
 
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -218,7 +227,7 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         date_full_range = self.request.query_params.getlist("date_full_range")
         area_range = self.request.query_params.getlist("area_range")
         queryset = Host.nearest_host.filter(
-            available_dates__date__isnull=False
+            host__date__isnull=False
         ).distinct()
         print(dist, weekday, exact_date, date_range, area_range)
         print(queryset)
@@ -230,9 +239,9 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 current_lat=lat, current_long=long, x_km=dist
             )
         if weekday:
-            queryset = queryset.filter(available_dates__date__iso_week_day__in=weekday)
+            queryset = queryset.filter(host__date__iso_week_day__in=weekday)
         if exact_date:
-            queryset = queryset.filter(available_dates__date__in=date)
+            queryset = queryset.filter(host__date__in=date)
         if len(date_full_range) >= 2:
             start_date_string, end_date_string = date_full_range[:2]
             start_date = datetime.strptime(start_date_string, "%Y-%m-%d").date()
@@ -240,10 +249,10 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             delta = end_date - start_date
             all_date_within_interval = [start_date + timedelta(days=i) for i in range(delta.days + 1)]
             for wanted_date in all_date_within_interval:
-                queryset = queryset.filter(available_dates__date=wanted_date)
+                queryset = queryset.filter(host__date=wanted_date)
         if len(date_range) >= 2:
             date_range_interval = date_range[:2]
-            queryset = queryset.filter(available_dates__date__range=date_range_interval)
+            queryset = queryset.filter(host__date__range=date_range_interval)
         if len(area_range) >= 2:
             area_range_interval = area_range[:2]
             queryset = queryset.filter(host_area__range=area_range_interval)
@@ -262,3 +271,12 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^date"]
     filterset_fields = ["date"]
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        parent_lookup = self.kwargs.get("parent_lookup_host")
+        if parent_lookup:
+            serializer_class = HostAvailableDateWithNestedSerializer
+        else:
+            serializer_class = HostAvailableDateSerializer
+        return serializer_class
