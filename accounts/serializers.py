@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.generics import RetrieveAPIView
 from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
+from service.models import Service
+from datetime import date
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -162,12 +163,28 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
         """
         validate the date field
             - the date must not have the duplicate for one host
+            - Host cant register in date that host is service
+            - Host cant register date in the past
         """
         host = Host.objects.get(account=self.context["request"].user)
+
+        if value < date.today():
+            raise serializers.ValidationError("Do you have a time machine?")
+
         if HostAvailableDate.objects.filter(date=value, host=host).exists():
             raise serializers.ValidationError(
                 "This date has already been assigned for this host"
             )
+
+        in_progess_service = Service.objects.filter(
+            host=host,
+            service_start_time__lte=value,
+            service_end_time__gte=value,
+            main_status="in_progress",
+        )
+        if in_progess_service.exists():
+            raise serializers.ValidationError("This date in in your service date")
+
         return value
 
 
