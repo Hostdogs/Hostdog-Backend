@@ -25,7 +25,7 @@ router.register(r"available-date", HostAvailableDateViewSet)
 router.register(r"profilehost", HostProfileViewSet).register(
     r"available-date",
     HostAvailableDateViewSet,
-    basename="profilehost",
+    basename="profilehost-availabledate",
     parents_query_lookups=["host"]
 )
 router.register(r"profilecustomer", CustomerProfileViewSet).register(

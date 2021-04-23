@@ -66,7 +66,7 @@ class Host(models.Model):
         return f"hosts/{uuid4().hex}.{extension}"
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
+    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True, related_name="host_account")
     picture = models.ImageField(
         verbose_name=_("Host's image"), upload_to=path_and_rename, blank=True
     )
@@ -107,7 +107,7 @@ class Customer(models.Model):
         return f"customers/{uuid4().hex}.{extension}"
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True)
+    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True, related_name="customer_account")
     picture = models.ImageField(
         verbose_name=_("Customer's image"), upload_to=path_and_rename, blank=True
     )
@@ -145,7 +145,7 @@ class Dog(models.Model):
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
     customer = models.ForeignKey(
-        Customer, related_name="dogs_of_customer", on_delete=models.CASCADE
+        Customer, related_name="dog_customer", on_delete=models.CASCADE
     )
     picture = models.ImageField(
         verbose_name=_("Dog's image"), upload_to=path_and_rename, blank=True
@@ -171,9 +171,9 @@ class HostAvailableDate(models.Model):
     """
 
     host = models.ForeignKey(
-        Host, on_delete=models.CASCADE, related_name="available_dates"
+        Host, on_delete=models.CASCADE, related_name="host"
     )
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return self.date
+        return f"Host : {self.host}\nDate : {self.date}"

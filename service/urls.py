@@ -5,9 +5,9 @@ from .views import ServiceViewSet, MealViewSet, HostServiceViewSet
 app_name = "service"
 
 router = DefaultRouter()
-router.register("service", ServiceViewSet)
-router.register("meal", MealViewSet)
-router.register("hostservice", HostServiceViewSet)
+router.register("services", ServiceViewSet)
+router.register("meals", MealViewSet)
+router.register("hostservices", HostServiceViewSet)
 
 
 urlpatterns = router.urls
