@@ -3,10 +3,21 @@ from django.urls import reverse
 from django.contrib.auth.models import (
     AbstractUser,
 )
+from accounts.serializers import (
+    AccountSerializer,
+    CustomerProfileSerializer,
+    DogProfileWithNestedSerializer,
+    HostAvailableDateSerializer,
+    HostAvailableDateWithNestedSerializer,
+    HostProfileSerializer,
+    DogProfileSerializer,
+    ChangePasswordSerializer,
+)
 from accounts.models import Accounts , Customer , Host , Dog , NearestHost , HostAvailableDate
 from accounts.views import AccountsViewSet,AuthToken
 from rest_framework.test import APITestCase,APIClient
-
+from rest_framework import status
+from rest_framework.authtoken.models import Token
 from django.utils import timezone
 import pytz
 import datetime
@@ -14,6 +25,7 @@ import datetime
 #py manage.py migrate
 #coverage run --omit="*/hostdog/*" manage.py test
 #coverage html
+'''
 class TestModel(TestCase):
     """
     TODO:
@@ -143,8 +155,8 @@ class TestModel(TestCase):
             host_id=host_001.account_id
         )
         
-        near_001 = NearestHost()
-        near_001.nearest_host_within_x_km(5,5,2)
+        #near_001 = NearestHost()
+        #near_001.nearest_host_within_x_km(5,5,2)
 
     def test_account(self):
         acc = Accounts.objects.get(id = 1)
@@ -261,22 +273,113 @@ class TestModel(TestCase):
         self.assertEqual(dog_weight,251.32)
 
     def test_host_available_date(self):
-        ava = HostAvailableDate.objects.get(host_id = 2)
+        ava = HostAvailableDate.objects.get(host = self.host_001)
 
         word = str(ava)
         self.assertEqual(word,str(ava))
-
-    
-
 '''
-class TestView(APITestCase):
+
+class TestAPI(APITestCase):
 
     @classmethod
     def setUp(self):
+        self.client = APIClient()
+        self.acc_001 = Accounts.objects.create(
+            is_host = True,
+            username = 'host001',
+            #password = 'password',
+            email = 'host001@email.com'
+        )
+        self.acc_001.set_password('password')
+        self.acc_001.save()
+        t_acc001=Token.objects.create(user=self.acc_001)
+        self.acc_002 = Accounts.objects.create(
+            is_host = False,
+            username = 'cus001',
+            password = 'password',
+            email = 'cus001@email.com'
+        )
+        self.host001 = Host.objects.get(account=self.acc_001)
+        self.cus001 = Customer.objects.get(account=self.acc_002)
+        self.dog_001 = Dog.objects.create(
+            customer=self.cus001,
+            dog_name='dog_name',
+            dog_breed='dog_breed',
+            gender='Female'
+        )
+        self.client.force_authenticate(user=self.acc_001)
+
+    def test_acc_view_set(self):
+
+        url = reverse('accounts:accounts-list')
+        #create
+        data1 = {
+            'is_host' : True,
+            'username' : 'username',
+            'password' : 'password',
+            'email' : 'account001@email.com'
+        }
+        response1 = self.client.post(url,data1,format = 'json')#201
+        #same username
+        data2 = {
+            'is_host' : True,
+            'username' : 'username',
+            'password' : 'password',
+            'email' : 'account002@email.com'
+        }
+        response2 = self.client.post(url,data2,format = 'json')#400
+        #same email
+        data3 = {
+            'is_host' : True,
+            'username' : 'username2',
+            'password' : 'password',
+            'email' : 'account002@email.com'
+        }
+        response3 = self.client.post(url,data3,format = 'json')#201
+        data4 = {
+            'is_host' : True,
+            'username' : 'username3',
+            'password' : 'password',
+            'email' : 'account002@email.com'
+        }
+        response4 = self.client.post(url,data4,format = 'json')#400
+        data5 = {
+            'is_host' : False,
+            'username' : 'username3',
+            'password' : 'password',
+            'email' : 'account002@email.com'
+        }
+        response5 = self.client.post(url,data5,format = 'json')#201
+        data6 = {
+            'is_host' : False,
+            'username' : 'username4',
+            'password' : 'password',
+            'email' : 'account002@email.com'
+        }
+        response6 = self.client.post(url,data6,format = 'json')#400
+
+        self.assertEqual(response1.status_code,status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code,status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response3.status_code,status.HTTP_201_CREATED)
+        self.assertEqual(response4.status_code,status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response5.status_code,status.HTTP_201_CREATED)
+        self.assertEqual(response6.status_code,status.HTTP_400_BAD_REQUEST) 
+
+    def test_change_pass(self):
+        token = Token.objects.get(user=self.acc_001)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         
-
-    def test_view_GET(self):
-'''        
-
-
+        url = reverse('accounts:accounts-change_password',kwargs={'pk':self.acc_001.id})   
+        data1={    
+            'old_password':'password',
+            'new_password':'new_password'
+        }
+        response1 = self.client.post(url,data1,format = 'json')
+        data2={
+            'old_password':'wrong_password',
+            'new_password':'new_password'
+        }
+        response2 = self.client.post(url,data2,format = 'json')
+        self.assertEqual(response1.status_code,status.HTTP_200_OK) 
+        self.assertEqual(response2.status_code,status.HTTP_400_BAD_REQUEST)
         
