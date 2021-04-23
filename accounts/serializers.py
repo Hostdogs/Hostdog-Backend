@@ -198,7 +198,7 @@ class HostAvailableDateWithNestedSerializer(HostAvailableDateSerializer):
         read_only_fields = ["host"]
 
     def create(self, validated_data):
-        host = Host.objects.get(accout=self.context["request"].user)
+        host = Host.objects.get(account=self.context["request"].user)
         host_available_date = HostAvailableDate.objects.create(
             host=host, **validated_data
         )

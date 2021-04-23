@@ -176,4 +176,4 @@ class HostAvailableDate(models.Model):
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return self.date
+        return f"Host : {self.host}\nDate : {self.date}"
