@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.generics import RetrieveAPIView
 from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
+from service.models import Service
+from datetime import date
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -97,35 +98,20 @@ class DogProfileSerializer(serializers.ModelSerializer):
         return value
 
 
-class DogProfileWithNestedSerializer(serializers.ModelSerializer):
+class DogProfileWithNestedSerializer(DogProfileSerializer):
     """
-    Serializer for dog model
+    Serializer for dog model(Extend from DogProfileSerializer)
         - use with dog view with nested resource
     """
-    class Meta:
-        model = Dog
-        fields = [
-            "id",
-            "customer",
-            "picture",
-            "dog_name",
-            "dog_dob",
-            "dog_breed",
-            "dog_weight",
-            "dog_bio",
-            "dog_create_date",
-            "dog_breed",
-            "dog_dob",
-        ]
-        read_only_fields = [
-            "customer",
-            "dog_create_date"
-        ]
-    
+
+    class Meta(DogProfileSerializer.Meta):
+        read_only_fields = ["customer", "dog_create_date"]
+
     def create(self, validated_data):
         customer = Customer.objects.get(account=self.context["request"].user)
         dog = Dog.objects.create(customer=customer, **validated_data)
         return dog
+
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """
@@ -162,7 +148,7 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HostAvailableDate
-        fields = ("id", "host", "date")
+        fields = ["id", "host", "date"]
 
     def validate_host(self, value):
         """
@@ -172,38 +158,52 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
         if value.account != self.context["request"].user:
             raise serializers.ValidationError("Bad value : Not this user")
         return value
-    
+
     def validate_date(self, value):
         """
         validate the date field
             - the date must not have the duplicate for one host
+            - Host cant register in date that host is service
+            - Host cant register date in the past
         """
         host = Host.objects.get(account=self.context["request"].user)
+
+        if value < date.today():
+            raise serializers.ValidationError("Do you have a time machine?")
+
         if HostAvailableDate.objects.filter(date=value, host=host).exists():
-            raise serializers.ValidationError("This date has already been assigned for this host")
+            raise serializers.ValidationError(
+                "This date has already been assigned for this host"
+            )
+
+        in_progess_service = Service.objects.filter(
+            host=host,
+            service_start_time__lte=value,
+            service_end_time__gte=value,
+            main_status="in_progress",
+        )
+        if in_progess_service.exists():
+            raise serializers.ValidationError("This date in in your service date")
+
         return value
 
 
-class HostAvailableDateWithNestedSerializer(serializers.ModelSerializer):
+class HostAvailableDateWithNestedSerializer(HostAvailableDateSerializer):
     """
-    Serializer for HostAvailable date model
-        - use with host available view with nest resource 
+    Serializer for HostAvailable date model(Extend from HostAvailableDateSerializer)
+        - use with host available view with nest resource
     """
-    class Meta:
-        model = HostAvailableDate
-        fields = [
-            "id",
-            "host",
-            "date",
-        ]
-        read_only_fields = [
-            "host"
-        ]
-        
+
+    class Meta(HostAvailableDateSerializer.Meta):
+        read_only_fields = ["host"]
+
     def create(self, validated_data):
         host = Host.objects.get(accout=self.context["request"].user)
-        host_available_date = HostAvailableDate.objects.create(host=host, **validated_data)
+        host_available_date = HostAvailableDate.objects.create(
+            host=host, **validated_data
+        )
         return host_available_date
+
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
@@ -212,6 +212,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
 
     available_dates = HostAvailableDateSerializer(read_only=True, many=True)
     distance = serializers.SerializerMethodField()
+
     class Meta:
         model = Host
         fields = (
@@ -230,7 +231,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "dob",
             "latitude",
             "longitude",
-            "distance"
+            "distance",
         )
 
     def get_distance(self, validated_data):

@@ -15,7 +15,32 @@ import datetime
 #coverage run --omit="*/hostdog/*" manage.py test
 #coverage html
 class TestModel(TestCase):
-
+    """
+    TODO:
+        - AccountViewSet
+            * User create account ใส่ข้อมูลถูกต้อง (SUCCESS)
+            * User create account (FAIL)
+                @ ใส่ username ซ้ำ
+                @ role ซ้ำกับ email เดิม
+                @ ใช้ email เกิน 2 ครั้ง
+            * เปลี่ยนรหัสผ่าน account (SUCCESS)
+        - AuthToken
+            * login ด้วย account ที่สร้างมา (SUCCESS)
+        - CustomerProfileViewSet
+            * เข้าถึง Customer profile หลังจาก create account (SUCCESS)
+            * แก้ไข
+        - HostProfileViewSet
+            * เข้าถึง Host profile หลังจาก create account (SUCCESS)
+            * แก้ไข
+        - DogViewSet
+            * เข้าถึง dog profile ผ่าน customer profile (SUCCESS)
+            * สร้างหมาผ่าน customer profile (SUCCESS)
+            * แก้ไขข้อมูลหมาผ่าน customer profile (SUCCESS)
+            * ลบหมาผ่าน customer profile (SUCCESS)
+        - HostAvailableDateViewSet
+            * host กำหนดวันผ่าน host profile (SUCCESS)
+            * กำหนดวันซ้ำ, วันในอดีต (FAIL)
+    """
     @classmethod
     def setUpTestData(cls):
         
