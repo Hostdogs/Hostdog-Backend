@@ -62,5 +62,5 @@ router.register(r"profilecustomer", CustomerProfileViewSet).register(
     parents_query_lookups=["customer"],
 )
 
-urlpatterns = [path("token/", AuthToken.as_view())]
+urlpatterns = [path("token/", AuthToken.as_view(), name="token")]
 urlpatterns += router.urls
