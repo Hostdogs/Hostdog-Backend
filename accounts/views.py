@@ -7,8 +7,9 @@ from accounts.serializers import (
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
+    HouseImagesSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, HouseImages
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -192,6 +193,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             serializer_class = DogProfileSerializer
         return serializer_class
 
+
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query customer
@@ -226,8 +228,11 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         date_range = self.request.query_params.getlist("date_range")
         date_full_range = self.request.query_params.getlist("date_full_range")
         area_range = self.request.query_params.getlist("area_range")
+        all_host = self.request.query_params.get("all")
+        if all_host:
+            return Host.objects.all()
         queryset = Host.nearest_host.filter(
-            host__date__isnull=False
+            host_available_date__date__isnull=False
         ).distinct()
         print(dist, weekday, exact_date, date_range, area_range)
         print(queryset)
@@ -239,23 +244,31 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 current_lat=lat, current_long=long, x_km=dist
             )
         if weekday:
-            queryset = queryset.filter(host__date__iso_week_day__in=weekday)
+            queryset = queryset.filter(
+                host_available_date__date__iso_week_day__in=weekday
+            )
         if exact_date:
-            queryset = queryset.filter(host__date__in=date)
+            queryset = queryset.filter(host_available_date__date__in=date)
         if len(date_full_range) >= 2:
             start_date_string, end_date_string = date_full_range[:2]
             start_date = datetime.strptime(start_date_string, "%Y-%m-%d").date()
             end_date = datetime.strptime(end_date_string, "%Y-%m-%d").date()
             delta = end_date - start_date
-            all_date_within_interval = [start_date + timedelta(days=i) for i in range(delta.days + 1)]
+            all_date_within_interval = [
+                start_date + timedelta(days=i) for i in range(delta.days + 1)
+            ]
             for wanted_date in all_date_within_interval:
                 queryset = queryset.filter(host__date=wanted_date)
         if len(date_range) >= 2:
             date_range_interval = date_range[:2]
-            queryset = queryset.filter(host__date__range=date_range_interval)
+            queryset = queryset.filter(
+                host_available_date__date__range=date_range_interval
+            )
         if len(area_range) >= 2:
             area_range_interval = area_range[:2]
-            queryset = queryset.filter(host_area__range=area_range_interval)
+            queryset = queryset.filter(
+                host_available_date_area__range=area_range_interval
+            )
         return queryset
 
 
@@ -280,3 +293,11 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             serializer_class = HostAvailableDateSerializer
         return serializer_class
+
+
+class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for manageing Host's house image
+    """
+    queryset = HouseImages.objects.all()
+    serializer_class = HouseImagesSerializer

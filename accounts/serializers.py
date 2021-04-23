@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
+from accounts.models import (
+    Accounts,
+    Customer,
+    Host,
+    Dog,
+    HostAvailableDate,
+    HouseImages,
+)
 from service.models import Service
 from datetime import date
 
@@ -105,6 +112,7 @@ class DogProfileWithNestedSerializer(DogProfileSerializer):
     """
 
     class Meta(DogProfileSerializer.Meta):
+        fields = DogProfileSerializer.Meta.fields
         read_only_fields = ["customer", "dog_create_date"]
 
     def create(self, validated_data):
@@ -119,7 +127,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         - use when create customer profile
     """
 
-    dogs = DogProfileSerializer(read_only=True, many=True)
+    dog_customer = DogProfileSerializer(read_only=True, many=True)
 
     class Meta:
         model = Customer
@@ -136,7 +144,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "dob",
             "latitude",
             "longitude",
-            "dogs",
+            "dog_customer",
         ]
         read_only_fields = ["account"]
 
@@ -195,6 +203,7 @@ class HostAvailableDateWithNestedSerializer(HostAvailableDateSerializer):
     """
 
     class Meta(HostAvailableDateSerializer.Meta):
+        fields = HostAvailableDateSerializer.Meta.fields
         read_only_fields = ["host"]
 
     def create(self, validated_data):
@@ -205,12 +214,29 @@ class HostAvailableDateWithNestedSerializer(HostAvailableDateSerializer):
         return host_available_date
 
 
+class HouseImagesSerializer(serializers.ModelSerializer):
+    """
+    Serializer for house image model
+    """
+
+    class Meta:
+        model = HouseImages
+        fields = ["host", "picture"]
+        read_only_fields = ["host"]
+
+    def create(self, validated_data):
+        host = Host.objects.get(account=self.context["request"].user)
+        house_image = HouseImages.objects.create(host=host, **validated_data)
+        return house_image
+
+
 class HostProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for host model
     """
 
-    available_dates = HostAvailableDateSerializer(read_only=True, many=True)
+    host_available_date = HostAvailableDateSerializer(read_only=True, many=True)
+    house_image = HouseImagesSerializer(read_only=True, many=True)
     distance = serializers.SerializerMethodField()
 
     class Meta:
@@ -218,13 +244,14 @@ class HostProfileSerializer(serializers.ModelSerializer):
         fields = (
             "account",
             "picture",
+            "house_image",
             "first_name",
             "last_name",
             "host_bio",
             "host_rating",
             "host_hosted_count",
             "host_max",
-            "available_dates",
+            "host_available_date",
             "host_area",
             "address",
             "mobile",

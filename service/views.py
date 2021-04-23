@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 from service.serializers import (
     ServiceDetailSerializer,
     ServiceResponseSerializer,
@@ -98,7 +99,7 @@ class MealViewSet(viewsets.ModelViewSet):
     filterset_fields = ["meal_type", "meal_price"]
 
 
-class HostServiceViewSet(viewsets.ModelViewSet):
+class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for managing host service
         - Only Host can access this viewset
@@ -108,7 +109,4 @@ class HostServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerAndHost & IsAuthenticated]
     queryset = HostService.objects.all()
     serializer_class = HostServiceSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        return HostService.objects.filter(host=user)
+    http_method_names = ["get", "put", "patch", "head", "options"]
