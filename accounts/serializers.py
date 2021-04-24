@@ -212,13 +212,9 @@ class HostAvailableDateWithNestedSerializer(HostAvailableDateSerializer):
 
     def create(self, validated_data):
         host = Host.objects.get(account=self.context["request"].user)
-<<<<<<< HEAD
-        host_available_date = HostAvailableDate.objects.create(host=host, **validated_data)
-=======
         host_available_date = HostAvailableDate.objects.create(
             host=host, **validated_data
         )
->>>>>>> feature-service
         return host_available_date
 
 
@@ -283,14 +279,12 @@ class DogFeedingTimeSerializer(serializers.ModelSerializer):
         fields=["id","dog","time"]
         read_only_fields = ["dog"]
     def create(self,validated_data):
+        dog_id=self.context["view"].kwargs["dog_pk"]
+        print(dog_id)
+        dog=Dog.objects.get(id=dog_id)
+        print(dog)
+        print(validated_data)
+        feeding_time=DogFeedingTime.objects.create(dog=dog,**validated_data)
+        print(feeding_time)
+        return feeding_time
 
-        dog_id=self.context["view"].kwargs["pk"]
-        
-        dog=DogFeedingTime.objects.get(id=dog_id)
-        print(self.context)
-
-        return dog
-
-        # host = Host.objects.get(accout=self.context["request"].user)
-        # host_available_date = HostAvailableDate.objects.create(host=host, **validated_data)
-        # return host_available_date

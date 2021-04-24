@@ -7,15 +7,11 @@ from accounts.serializers import (
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
-<<<<<<< HEAD
     DogFeedingTimeSerializer,
-)
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, DogFeedingTime
-=======
     HouseImagesSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, HouseImages
->>>>>>> feature-service
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, DogFeedingTime, HouseImages
+
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -60,7 +56,7 @@ class DogOwnerPermission(BasePermission):
 
     def has_permission(self, request, view):
         if view.action == "create":
-            parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
+            parent_lookup_customer = view.kwargs.get("customer_pk")
             if (
                 parent_lookup_customer is not None
                 and Accounts.objects.get(id=parent_lookup_customer) != request.user
@@ -96,7 +92,7 @@ class AvailableDateOwnPermission(BasePermission):
 
     def has_permission(self, request, view):
         if view.action == "create":
-            parent_lookup_host = view.kwargs.get("parent_lookup_host")
+            parent_lookup_host = view.kwargs.get("host_pk")
             if (
                 parent_lookup_host is not None
                 and Accounts.objects.get(id=parent_lookup_host) != request.user
@@ -192,7 +188,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        parent_lookup = self.kwargs.get("parent_lookup_customer")
+        parent_lookup = self.kwargs.get("customer_pk")
         if parent_lookup:
             serializer_class = DogProfileWithNestedSerializer
         else:
@@ -293,7 +289,7 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        parent_lookup = self.kwargs.get("parent_lookup_host")
+        parent_lookup = self.kwargs.get("host_pk")
         if parent_lookup:
             serializer_class = HostAvailableDateWithNestedSerializer
         else:
@@ -303,6 +299,14 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class DogFeedingTimeViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
     queryset=DogFeedingTime.objects.all()
     serializer_class=DogFeedingTimeSerializer
+    
+    # def get_queryset(self):
+    #     queryset=DogFeedingTime.objects.all()
+    #     dog_pk=self.view.kwargs.get("dog_pk")
+    #     print(dog_pk)
+    #     if dog_pk:
+    #         return queryset.filter(dog=dog_pk)
+    #     return queryset
 
 class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """

@@ -194,8 +194,7 @@ class DogFeedingTime(models.Model):
     )
     time=models.TimeField()
     def __str__(self):
-        return self.time
-        return f"Host : {self.host}\nDate : {self.date}"
+        return str(self.time)
 
 
 class HouseImages(models.Model):
