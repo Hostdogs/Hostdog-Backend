@@ -292,7 +292,6 @@ class TestAPI(APITestCase):
         )
         self.acc_001.set_password('password')
         self.acc_001.save()
-        t_acc001=Token.objects.create(user=self.acc_001)
         self.acc_002 = Accounts.objects.create(
             is_host = False,
             username = 'cus001',
@@ -309,8 +308,8 @@ class TestAPI(APITestCase):
             dog_breed='dog_breed',
             gender='Female'
         )
-        self.client.force_authenticate(user=self.acc_001)
-        self.client.force_authenticate(user=self.cus001)
+        #self.client.force_authenticate(user=self.acc_001)
+        #self.client.force_authenticate(user=self.acc_002)
     def test_acc_view_set(self):
 
         url = reverse('accounts:accounts-list')
@@ -386,9 +385,20 @@ class TestAPI(APITestCase):
         self.assertEqual(response2.status_code,status.HTTP_400_BAD_REQUEST)
     
     def test_cus_profile(self):
-
-        url = reverse('accounts:customer-list',kwargs={'pk':self.acc_002.id})
-        data1{
-            'first_name':'first_name',
-            'last_name':'last_name'
+        token = Token.objects.get(user=self.acc_002)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        
+        url = reverse('accounts:customer-detail',kwargs={'pk':self.acc_002.id})
+        
+        data1={
+            "first_name":'first_name',
+            "last_name":'last_name',
+            "customer_bio":'customer_bio',
+            "customer_dog_count":5,
+            "customer_hosted_count":20,
+            "address":'address',
+            "mobile":'0812345678',
+            "dob":'10-10-2020'
         }
+        response1 = self.client.post(url,data1,format='json')
+        print(response1)
