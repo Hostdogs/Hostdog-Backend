@@ -62,11 +62,16 @@ class Host(models.Model):
     """
 
     def path_and_rename(instance, filename):
-        extension = filename.split('.')[-1]
+        extension = filename.split(".")[-1]
         return f"hosts/{uuid4().hex}.{extension}"
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True, related_name="host_account")
+    account = models.OneToOneField(
+        Accounts,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name="host_account",
+    )
     picture = models.ImageField(
         verbose_name=_("Host's image"), upload_to=path_and_rename, blank=True
     )
@@ -96,6 +101,7 @@ class Host(models.Model):
     def __str__(self):
         return str(self.account)
 
+
 class Customer(models.Model):
     """
     Customer profile model
@@ -103,11 +109,16 @@ class Customer(models.Model):
     """
 
     def path_and_rename(instance, filename):
-        extension = filename.split('.')[-1]
+        extension = filename.split(".")[-1]
         return f"customers/{uuid4().hex}.{extension}"
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
-    account = models.OneToOneField(Accounts, on_delete=models.CASCADE, primary_key=True, related_name="customer_account")
+    account = models.OneToOneField(
+        Accounts,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name="customer_account",
+    )
     picture = models.ImageField(
         verbose_name=_("Customer's image"), upload_to=path_and_rename, blank=True
     )
@@ -140,7 +151,7 @@ class Dog(models.Model):
     """
 
     def path_and_rename(instance, filename):
-        extension = filename.split('.')[-1]
+        extension = filename.split(".")[-1]
         return f"dogs/{uuid4().hex}.{extension}"
 
     GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
@@ -170,9 +181,7 @@ class HostAvailableDate(models.Model):
     Host available date model
     """
 
-    host = models.ForeignKey(
-        Host, on_delete=models.CASCADE, related_name="host"
-    )
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="host_available_date")
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
@@ -186,3 +195,20 @@ class DogFeedingTime(models.Model):
     time=models.TimeField()
     def __str__(self):
         return self.time
+        return f"Host : {self.host}\nDate : {self.date}"
+
+
+class HouseImages(models.Model):
+    """
+    House image model
+    """
+    def path_and_rename(instance, filename):
+        extension = filename.split(".")[-1]
+        return f"houses/{uuid4().hex}.{extension}"
+
+    host = models.ForeignKey(
+        Host, on_delete=models.CASCADE, related_name="house_image"
+    )
+    picture = models.ImageField(
+        verbose_name=_("House picture"), upload_to=path_and_rename, blank=True
+    )
