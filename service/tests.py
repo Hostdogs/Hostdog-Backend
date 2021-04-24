@@ -1,10 +1,11 @@
 from django.test import TestCase
 from django.urls import reverse
-from accounts.models import Customer, Dog, Host, Accounts
+from accounts.models import Customer, Dog, Host, Accounts, HostAvailableDate
 from service.models import HostService, Service, Meal
 from rest_framework.test import APIClient, APITestCase
 from datetime import date, datetime, timedelta
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 # py manage.py makemigrations
 # py manage.py migrate
@@ -16,14 +17,14 @@ from rest_framework import status
         - Model testing
             * Test about create the object model (SUCCESS)
         - Host create available date (>= 3 Testcase)
-            * register date in the past (FAIL)
-            * register date greater than or equal to today (SUCCESS)
-            * register date that in service (FAIL)
+            * register date in the past (FAIL) [x]
+            * register date greater than or equal to today (SUCCESS) [x]
+            * register date that in service (FAIL) [x]
         - ServiceViewSet
             - Customer register the host service 
-                * register to the correct host available date (SUCCESS)
-                * register to the wrong host available date (FAIL)
-                * register to the date in the past (FAIL)
+                * register to the correct host available date (SUCCESS) [x]
+                * register to the wrong host available date (FAIL) [x]
+                * register to the date in the past (FAIL) [x]
                 * attribute in service object must correct (SUCCESS)
                 * customer choose wrong additional service (FAIL)
                     @ Host เลือกไม่เปิด Field ตามนี้ แต่ customer กลับเลือกใช้บริการ
@@ -84,9 +85,7 @@ class Model_Testing(TestCase):
             longitude=10,
         )
 
-        self.meal_001 = Meal.objects.create(
-            meal_type="meal_type", meal_price=24.132
-        )
+        self.meal_001 = Meal.objects.create(meal_type="meal_type", meal_price=24.132)
 
     def test_meal(self):
         meal = Meal.objects.get(id=self.meal_001.id)
@@ -100,53 +99,52 @@ class Model_Testing(TestCase):
 
 
 class API_Testing(APITestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.acc_host_001 = Accounts.objects.create_user(
-            username="host001",
-            email="host001@api.com",
-            password="123",
-            is_host=True
+            username="host001", email="host001@api.com", is_host=True
         )
+        self.acc_host_001.set_password("123")
+        self.acc_host_001.save()
+        self.token_acc_host_001 = Token.objects.create(user=self.acc_host_001)
         self.acc_cus_001 = Accounts.objects.create_user(
-            username="customer001",
-            email="cus001@api.com",
-            password="123",
-            is_host=False
+            username="customer001", email="cus001@api.com", is_host=False
         )
+        self.acc_cus_001.set_password("123")
+        self.acc_cus_001.save()
+        self.token_acc_cus_001 = Token.objects.create(user=self.acc_cus_001)
         self.host = Host.objects.get(account=self.acc_host_001)
         self.customer = Customer.objects.get(account=self.acc_cus_001)
         self.additional_service = HostService.objects.get(host=self.host)
+        for day in range(2):
+            self.host_001_available_date = HostAvailableDate.objects.create(
+                host=self.host, date=date.today() + timedelta(days=day)
+            )
         self.dog_001 = Dog.objects.create(
-            customer = self.customer,
-            dog_name = "Doggy",
-            dog_breed = "USA",
+            customer=self.customer,
+            dog_name="Doggy",
+            dog_breed="USA",
             gender="male",
         )
-        self.meal_001 = Meal.objects.create(
-            meal_type = "Chicken",
-            meal_price = 150
-        )
+        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price=150)
         self.service = Service.objects.create(
-            customer = self.customer,
-            host = self.host,
-            dog = self.dog_001,
-            service_start_time = date.today(),
-            service_end_time = date.today() + timedelta(days=1),
-            service_meal_type = self.meal_001,
-            service_meal_per_day = 2,
-            service_meal_weight = 15,
-            is_dog_walk = True,
-            is_get_dog = True,
-            is_delivery_dog = True,
-            is_bath_dog = True,
-            additional_service = self.additional_service,
-            service_bio = "My first service"
+            customer=self.customer,
+            host=self.host,
+            dog=self.dog_001,
+            service_start_time=date.today(),
+            service_end_time=date.today() + timedelta(days=1),
+            service_meal_type=self.meal_001,
+            service_meal_per_day=2,
+            service_meal_weight=15,
+            is_dog_walk=True,
+            is_get_dog=True,
+            is_delivery_dog=True,
+            is_bath_dog=True,
+            additional_service=self.additional_service,
+            service_bio="My first service",
         )
-        self.client.force_authenticate(user=self.acc_host_001)
         return super().setUp()
-    
+
     def test_create_available_date(self):
         """
         1.) register date in the past (FAIL)
@@ -154,18 +152,23 @@ class API_Testing(APITestCase):
         3.) register date that in service (FAIL)
         """
         # Reverse view -> url
-        #App : accounts
-        #url_name : 
-        
-        url = reverse("accounts:profilehost-availabledate-list", kwargs={"parent_lookup_host": self.acc_host_001.id})
+        # App : accounts
+        # url_name :
+        self.client.force_authenticate(
+            user=self.acc_host_001, token=self.token_acc_host_001
+        )
+        url = reverse(
+            "accounts:profilehost-availabledate-list",
+            kwargs={"parent_lookup_host": self.acc_host_001.id},
+        )
         # url = api/profilehost/idของhostคนนี้/available-date/
         # 1
         yesterday = date.today() - timedelta(days=1)
         data1 = {"date": yesterday}
         response1 = self.client.post(url, data1, format="json")
         # 2
-        next_day = date.today() + timedelta(days=1)
-        data2 = {"date": next_day}
+        future_day = date(2060, 5, 1) + timedelta(days=1)
+        data2 = {"date": future_day}
         response2 = self.client.post(url, data2, format="json")
         # 3
         data3 = {"date": self.service.service_end_time}
@@ -174,3 +177,108 @@ class API_Testing(APITestCase):
         self.assertEqual(response1.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response3.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class ServiceViewSetTesting(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.acc_cus_001 = Accounts.objects.create_user(
+            username="customer001", email="cus001@api.com", is_host=False
+        )
+        self.acc_cus_001.set_password("123")
+        self.acc_cus_001.save()
+        self.token_acc_cus_001 = Token.objects.create(user=self.acc_cus_001)
+
+        self.acc_host_001 = Accounts.objects.create_user(
+            username="host001", email="host001@api.com", is_host=True
+        )
+        self.acc_host_001.set_password("123")
+        self.acc_host_001.save()
+        self.token_acc_host_001 = Token.objects.create(user=self.acc_host_001)
+
+        self.host = Host.objects.get(account=self.acc_host_001)
+        self.customer = Customer.objects.get(account=self.acc_cus_001)
+        self.additional_service = HostService.objects.get(host=self.host)
+
+        self.dog_001 = Dog.objects.create(
+            customer=self.customer,
+            dog_name="Doggy",
+            dog_breed="USA",
+            gender="male",
+        )
+
+        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price=150)
+
+        for day in range(2):
+            self.host_001_available_date = HostAvailableDate.objects.create(
+                host=self.host, date=date.today() + timedelta(days=day)
+            )
+
+        return super().setUp()
+
+    def test_register_host_service(self):
+        """
+        1.) register to the correct host available date (SUCCESS)
+        2.) register to the wrong host available date (FAIL)
+        3.) register to the date in the past (FAIL)
+        """
+        self.client.force_authenticate(
+            user=self.acc_cus_001, token=self.token_acc_cus_001
+        )
+        url = reverse("service:service-list")
+        #1
+        service_data = {
+            "host": self.host.account.id,
+            "dog": self.dog_001.id,
+            "service_is_over_night": True,
+            "service_start_time": date.today(),
+            "service_end_time": date.today() + timedelta(days=1),
+            "service_meal_type": self.meal_001.id,
+            "service_meal_per_day": 2,
+            "service_meal_weight": 50,
+            "is_dog_walk": True,
+            "is_get_dog": True,
+            "is_delivery_dog": True,
+            "is_bath_dog": True,
+            "service_bio": "My first service yayyy",
+        }
+        service_response = self.client.post(url, service_data, format="json")
+        #2
+        service_data_2 = {
+            "host": self.host.account.id,
+            "dog": self.dog_001.id,
+            "service_is_over_night": True,
+            "service_start_time": date.today(),
+            "service_end_time": date.today() + timedelta(days=2),
+            "service_meal_type": self.meal_001.id,
+            "service_meal_per_day": 2,
+            "service_meal_weight": 50,
+            "is_dog_walk": True,
+            "is_get_dog": True,
+            "is_delivery_dog": True,
+            "is_bath_dog": True,
+            "service_bio": "My first service yayyy",
+        }
+        service_response_2 = self.client.post(url, service_data_2, format="json")
+        #3
+        service_data_3 = {
+            "host": self.host.account.id,
+            "dog": self.dog_001.id,
+            "service_is_over_night": True,
+            "service_start_time": date(2021, 1, 2),
+            "service_end_time": date(2021, 1, 3),
+            "service_meal_type": self.meal_001.id,
+            "service_meal_per_day": 2,
+            "service_meal_weight": 50,
+            "is_dog_walk": True,
+            "is_get_dog": True,
+            "is_delivery_dog": True,
+            "is_bath_dog": True,
+            "service_bio": "My first service yayyy",
+        }
+        service_response_3 = self.client.post(url, service_data_3, format="json")
+        
+        self.assertEqual(service_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(service_response_2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(service_response_3.status_code, status.HTTP_400_BAD_REQUEST)

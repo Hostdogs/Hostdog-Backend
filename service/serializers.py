@@ -30,6 +30,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        print(f"Context : {self.context['request'].user}")
         customer = Customer.objects.get(account=self.context["request"].user)
         additional_service = HostService.objects.get(host=validated_data["host"])
         service = Service.objects.create(
@@ -40,10 +41,12 @@ class ServiceSerializer(serializers.ModelSerializer):
     def validate_service_start_time(self, value):
         if value < date.today():
             raise serializers.ValidationError("Do you have a time machine?")
+        return value
 
     def validate_service_end_time(self, value):
         if value < date.today():
             raise serializers.ValidationError("Do you have a time machine?")
+        return value
 
     def validate(self, attrs):
         """
