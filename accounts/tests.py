@@ -25,7 +25,7 @@ import datetime
 #py manage.py migrate
 #coverage run --omit="*/hostdog/*" manage.py test
 #coverage html
-'''
+
 class TestModel(TestCase):
     """
     TODO:
@@ -154,9 +154,6 @@ class TestModel(TestCase):
             date='2021-04-20',
             host_id=host_001.account_id
         )
-        
-        #near_001 = NearestHost()
-        #near_001.nearest_host_within_x_km(5,5,2)
 
     def test_account(self):
         acc = Accounts.objects.get(id = 1)
@@ -273,11 +270,11 @@ class TestModel(TestCase):
         self.assertEqual(dog_weight,251.32)
 
     def test_host_available_date(self):
-        ava = HostAvailableDate.objects.get(host = self.host_001)
+        ava = HostAvailableDate.objects.get(host_id = 1)
 
         word = str(ava)
         self.assertEqual(word,str(ava))
-'''
+
 
 class TestAPI(APITestCase):
 
@@ -292,6 +289,7 @@ class TestAPI(APITestCase):
         )
         self.acc_001.set_password('password')
         self.acc_001.save()
+        self.t_acc001 = Token.objects.create(user=self.acc_001)
         self.acc_002 = Accounts.objects.create(
             is_host = False,
             username = 'cus001',
@@ -300,6 +298,7 @@ class TestAPI(APITestCase):
         )
         self.acc_002.set_password('password')
         self.acc_002.save()
+        self.t_acc002 = Token.objects.create(user=self.acc_002)
         self.host001 = Host.objects.get(account=self.acc_001)
         self.cus001 = Customer.objects.get(account=self.acc_002)
         self.dog_001 = Dog.objects.create(
@@ -308,8 +307,8 @@ class TestAPI(APITestCase):
             dog_breed='dog_breed',
             gender='Female'
         )
-        #self.client.force_authenticate(user=self.acc_001)
-        #self.client.force_authenticate(user=self.acc_002)
+
+        
     def test_acc_view_set(self):
 
         url = reverse('accounts:accounts-list')
@@ -369,7 +368,8 @@ class TestAPI(APITestCase):
     def test_change_pass(self):
         token = Token.objects.get(user=self.acc_001)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-        
+        self.client.force_authenticate(user=self.acc_001,token=self.t_acc001)
+
         url = reverse('accounts:accounts-change_password',kwargs={'pk':self.acc_001.id})   
         data1={    
             'old_password':'password',
@@ -384,21 +384,69 @@ class TestAPI(APITestCase):
         self.assertEqual(response1.status_code,status.HTTP_200_OK) 
         self.assertEqual(response2.status_code,status.HTTP_400_BAD_REQUEST)
     
+    def test_login(self):
+        url = reverse("accounts:token")
+        data  ={"username": self.acc_001.username, "password": "password"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK) 
+    
     def test_cus_profile(self):
         token = Token.objects.get(user=self.acc_002)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-        
+        self.client.force_authenticate(user=self.acc_002,token=self.t_acc002)
+
         url = reverse('accounts:customer-detail',kwargs={'pk':self.acc_002.id})
         
         data1={
             "first_name":'first_name',
             "last_name":'last_name',
+            "gender":'male',
             "customer_bio":'customer_bio',
             "customer_dog_count":5,
             "customer_hosted_count":20,
             "address":'address',
             "mobile":'0812345678',
-            "dob":'10-10-2020'
+            "dob":'2021-04-13',
+            "latitude":10,
+            "longitude":10,
         }
-        response1 = self.client.post(url,data1,format='json')
-        print(response1)
+        response1 = self.client.put(url,data1,format='json')
+        data2={
+            "first_name":'new_first_name',
+            "last_name":'new_last_name'
+        }
+        response2 = self.client.patch(url,data2,format='json')
+        self.assertEqual(response1.status_code,status.HTTP_200_OK)
+        self.assertEqual(response2.status_code,status.HTTP_200_OK)
+    
+    def test_host_profile(self):
+        token = Token.objects.get(user=self.acc_001)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client.force_authenticate(user=self.acc_001,token=self.t_acc001)
+
+        url = reverse('accounts:host-detail',kwargs={'pk':self.acc_001.id})
+        url += '?all=1'
+        data1={
+            "first_name":'first_name',
+            "last_name":'last_name',
+            "gender":'Male',
+            "host_bio":'host_bio',
+            "host_rating":4.53,
+            "host_hosted_count":10,
+            "host_max":9,
+            "host_available_date":'2021-04-13',
+            "host_area":20.5,
+            "address":'address',
+            "mobile":'0812345678',
+            "dob":'2021-04-12',
+            "latitude":10,
+            "longitude":10,
+        }
+        response1=self.client.put(url,data1,format='json')
+        data2={
+            "first_name":'new_first_name',
+            "last_name":'new_last_name'
+        }
+        response2 = self.client.patch(url,data2,format='json')
+        self.assertEqual(response1.status_code,status.HTTP_200_OK)
+        self.assertEqual(response2.status_code,status.HTTP_200_OK)
