@@ -107,11 +107,12 @@ class Service(models.Model):
                 - change main_status to in_progress
                 - change status to time of service
         """
-        self.main_status = "payment"
-        date_range = (self.service_start_time, self.service_end_time)
-        HostAvailableDate.objects.filter(
-            host=self.host, date__range=date_range
-        ).delete()
+        if self.main_status == "pending":
+            self.main_status = "payment"
+            date_range = (self.service_start_time, self.service_end_time)
+            HostAvailableDate.objects.filter(
+                host=self.host, date__range=date_range
+            ).delete()
 
     def decline(self):
         """
@@ -120,7 +121,8 @@ class Service(models.Model):
             TODO:
             - create post_save signal to notification
         """
-        self.main_status = "cancelled"
+        if self.main_status == "pending":
+            self.main_status = "cancelled"
 
     def __str__(self):
         return (
