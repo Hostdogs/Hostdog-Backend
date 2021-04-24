@@ -177,3 +177,12 @@ class HostAvailableDate(models.Model):
 
     def __str__(self):
         return self.date
+
+
+class DogFeedingTime(models.Model):
+    dog=models.ForeignKey(
+        Dog,on_delete=models.CASCADE,related_name="dog_feeding_time"
+    )
+    time=models.TimeField()
+    def __str__(self):
+        return self.time

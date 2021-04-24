@@ -34,6 +34,8 @@ router.register(r"profilecustomer", CustomerProfileViewSet).register(
     basename="profilecustomer-dogs",
     parents_query_lookups=["customer"]
 )
+
+
 urlpatterns = [
     path("token/", AuthToken.as_view())
 ]

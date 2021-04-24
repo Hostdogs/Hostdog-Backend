@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import RetrieveAPIView
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate,DogFeedingTime
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -201,7 +201,7 @@ class HostAvailableDateWithNestedSerializer(serializers.ModelSerializer):
         ]
         
     def create(self, validated_data):
-        host = Host.objects.get(accout=self.context["request"].user)
+        host = Host.objects.get(account=self.context["request"].user)
         host_available_date = HostAvailableDate.objects.create(host=host, **validated_data)
         return host_available_date
 
@@ -240,3 +240,21 @@ class HostProfileSerializer(serializers.ModelSerializer):
             print(e)
             return "-"
         return distance
+
+class DogFeedingTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=DogFeedingTime
+        fields=["id","dog","time"]
+        read_only_fields = ["dog"]
+    def create(self,validated_data):
+
+        dog_id=self.context["view"].kwargs["pk"]
+        
+        dog=DogFeedingTime.objects.get(id=dog_id)
+        print(self.context)
+
+        return dog
+
+        # host = Host.objects.get(accout=self.context["request"].user)
+        # host_available_date = HostAvailableDate.objects.create(host=host, **validated_data)
+        # return host_available_date

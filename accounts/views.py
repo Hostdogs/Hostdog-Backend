@@ -7,8 +7,9 @@ from accounts.serializers import (
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
+    DogFeedingTimeSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, DogFeedingTime
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -280,3 +281,7 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             serializer_class = HostAvailableDateSerializer
         return serializer_class
+
+class DogFeedingTimeViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
+    queryset=DogFeedingTime.objects.all()
+    serializer_class=DogFeedingTimeSerializer
