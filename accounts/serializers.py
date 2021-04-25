@@ -244,7 +244,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = (
+        fields = [
             "account",
             "picture",
             "house_image",
@@ -262,7 +262,8 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "latitude",
             "longitude",
             "distance",
-        )
+        ]
+        read_only_fields = ["account"]
 
     def get_distance(self, validated_data):
         try:

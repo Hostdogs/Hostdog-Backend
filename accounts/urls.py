@@ -73,4 +73,4 @@ urlpatterns += profile_customer_router.urls
 urlpatterns += host_service_router.urls
 urlpatterns += dogs_router.urls
 urlpatterns += feeding_time_router.urls
-print(f"URL Pattern size : {len(urlpatterns)}")
+print(f"URL pattern size  at accounts: {len(urlpatterns)}")

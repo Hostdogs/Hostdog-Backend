@@ -167,7 +167,6 @@ class API_Testing(APITestCase):
         next_day = date.today() + timedelta(days=1)
         data2 = {"date": next_day}
         response2 = self.client.post(url, data2, format="json")
-        print(response2.data)
         # 3
         data3 = {"date": self.service.service_end_time}
         response3 = self.client.post(url, data3, format="json")

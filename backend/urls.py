@@ -38,3 +38,4 @@ urlpatterns = [
     path('api/service/', include('service.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+print(f"URL patterns size at core backend : {len(urlpatterns)}")

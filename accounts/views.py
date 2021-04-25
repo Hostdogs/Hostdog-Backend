@@ -162,7 +162,6 @@ class AuthToken(ObtainAuthToken):
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        print(user)
         token, created = Token.objects.get_or_create(user=user)
         return Response(
             {
@@ -236,8 +235,8 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = Host.nearest_host.filter(
             host_available_date__date__isnull=False
         ).distinct()
-        print(dist, weekday, exact_date, date_range, area_range)
-        print(queryset)
+        #print(dist, weekday, exact_date, date_range, area_range)
+        #print(queryset)
         if dist:
             customer = Customer.objects.get(account=self.request.user)
             lat = customer.latitude
