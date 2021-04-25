@@ -419,3 +419,44 @@ class TestAPI(APITestCase):
         response2 = self.client.patch(url,data2,format='json')
         self.assertEqual(response1.status_code,status.HTTP_200_OK)
         self.assertEqual(response2.status_code,status.HTTP_200_OK)
+    
+    def test_dog_profile(self):
+        self.client.force_authenticate(user=self.acc_002,token=self.t_acc002)
+
+        url1 = reverse('accounts:profilecustomer-dogs-list',kwargs={'customer_pk':self.acc_002.id})
+
+        data1={
+            'dog_name':'dog_name',
+            'dog_bio':'dog_bio',
+            'dog_create_date':'2021-04-13',
+            'dog_dob':'2021-04-12',
+            'dog_breed':'dog_breed',
+            'dog_weight':55.36
+        }
+        response1=self.client.post(url1,data1,format='json')
+        
+        url2 = reverse('accounts:profilecustomer-dogs-detail',kwargs={'customer_pk':self.acc_002.id,'pk':self.dog_001.id})
+
+        data2={
+            'dog_name':'new_dog_name',
+            'dog_bio':'new_dog_bio'
+        }
+        response2=self.client.patch(url2,data2,format='json')
+        
+        data3={
+            'dog_name':'dog_name',
+            'dog_bio':'dog_bio',
+            'dog_create_date':'2021-04-13',
+            'dog_dob':'2021-04-12',
+            'dog_breed':'dog_breed',
+            'dog_weight':55.36
+        }
+        response3=self.client.post(url1,data3,format='json')
+        response3=self.client.delete(url2,data3,format='json')
+        
+
+        self.assertEqual(response1.status_code,status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code,status.HTTP_200_OK)
+        self.assertEqual(response3.status_code,status.HTTP_204_NO_CONTENT)
+
+
