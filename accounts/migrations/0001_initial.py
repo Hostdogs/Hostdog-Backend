@@ -44,6 +44,21 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Dog',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('picture', models.ImageField(blank=True, upload_to=accounts.models.Dog.path_and_rename, verbose_name="Dog's image")),
+                ('dog_name', models.CharField(max_length=50)),
+                ('gender', models.CharField(choices=[('male', 'Male'), ('female', 'Female')], default='Male', max_length=10)),
+                ('dog_bio', models.TextField(blank=True, max_length=100)),
+                ('dog_status', models.CharField(max_length=20)),
+                ('dog_create_date', models.DateField(auto_now_add=True)),
+                ('dog_dob', models.DateField(default=datetime.date.today)),
+                ('dog_breed', models.CharField(max_length=20)),
+                ('dog_weight', models.FloatField(default=0.0)),
+            ],
+        ),
+        migrations.CreateModel(
             name='Customer',
             fields=[
                 ('account', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='customer_account', serialize=False, to='accounts.accounts')),
@@ -112,6 +127,35 @@ class Migration(migrations.Migration):
                 ('dog_breed', models.CharField(max_length=20)),
                 ('dog_weight', models.FloatField(default=0.0)),
                 ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dog_customer', to='accounts.customer')),
+            ]
+        ),
+        migrations.CreateModel(
+            name='DogFeedingTime',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('time', models.TimeField()),
+                ('dog', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dog_feeding_time', to='accounts.dog')),
             ],
+        ),
+        migrations.CreateModel(
+            name='HouseImages',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('picture', models.ImageField(blank=True, upload_to=accounts.models.HouseImages.path_and_rename, verbose_name='House picture')),
+                ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='house_image', to='accounts.host')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='HostAvailableDate',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('date', models.DateField(default=datetime.date.today)),
+                ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='host_available_date', to='accounts.host')),
+            ],
+        ),
+        migrations.AddField(
+            model_name='dog',
+            name='customer',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dog_customer', to='accounts.customer'),
         ),
     ]

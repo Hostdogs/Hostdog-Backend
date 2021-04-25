@@ -7,60 +7,101 @@ from accounts.views import (
     HostProfileViewSet,
     AccountsViewSet,
     DogProfileViewSet,
+    DogFeedingTimeViewSet,
 )
 from django.urls import path, include
 from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
-from rest_framework_extensions.routers import NestedRouterMixin
 from service.views import HostServiceViewSet
-
+from rest_framework_nested import routers
 app_name = "accounts"
 
-#combination of NestedRouter and DefaultRouter So goooooddd
-class NestedDefaultRouter(NestedRouterMixin, DefaultRouter):
-    pass
 
 
-router = NestedDefaultRouter()
+
+
+
 """
 /api/.../
 """
+router = DefaultRouter()
 router.register(r"accounts", AccountsViewSet)
 router.register(r"dogs", DogProfileViewSet)
 router.register(r"available-date", HostAvailableDateViewSet)
 
 """
 /api/profilehost/.../
+
 """
-profilehost_route = router.register(r"profilehost", HostProfileViewSet)
-profilehost_route.register(
-    r"host-service",
-    HostServiceViewSet,
-    basename="profilehost-host-service",
-    parents_query_lookups=["host"],
-)
-profilehost_route.register(
-    r"available-date",
-    HostAvailableDateViewSet,
-    basename="profilehost-availabledate",
-    parents_query_lookups=["host"],
-)
-profilehost_route.register(
-    r"house-image",
-    HostHouseImageViewSet,
-    basename="profilehost-house-image",
-    parents_query_lookups=["host"]
-)
+profilehost_router=DefaultRouter()
+profilehost_router.register(r"profilehost", HostProfileViewSet,basename="profilehost")
+
+host_service_router=routers.NestedDefaultRouter(profilehost_router,r"profilehost",lookup="host")
+
+host_service_router.register(r"host-service",HostServiceViewSet,basename="profilehost-host-service")
+
+host_service_router.register(r"available-date",HostAvailableDateViewSet,basename="profilehost-availabledate")
+
+host_service_router.register( r"house-image",HostHouseImageViewSet,basename="profilehost-house-image")
+
+
+
+
+# profilehost_route = router.register(r"profilehost", HostProfileViewSet)
+
+# profilehost_route.register(
+#     r"host-service",
+#     HostServiceViewSet,
+#     basename="profilehost-host-service",
+#     parents_query_lookups=["host"],
+# )
+
+# profilehost_route.register(
+#     r"available-date",
+#     HostAvailableDateViewSet,
+#     basename="profilehost-availabledate",
+#     parents_query_lookups=["host"],
+# )
+# profilehost_route.register(
+#     r"house-image",
+#     HostHouseImageViewSet,
+#     basename="profilehost-house-image",
+#     parents_query_lookups=["host"]
+# )
 
 """
 /api/profilecustomer/.../
 """
-router.register(r"profilecustomer", CustomerProfileViewSet).register(
-    r"dogs",
-    DogProfileViewSet,
-    basename="profilecustomer-dogs",
-    parents_query_lookups=["customer"],
-)
+profile_customer_router=DefaultRouter()
+profile_customer_router.register(r"profilecustomer", CustomerProfileViewSet,basename="profilecustomer")
+
+
+dogs_router=routers.NestedDefaultRouter(profile_customer_router,r"profilecustomer",lookup="customer")
+dogs_router.register(r"dogs",DogProfileViewSet,basename="profilecustomer-dogs")
+
+feeding_time_router=routers.NestedDefaultRouter(dogs_router,r"dogs",lookup="dog")
+feeding_time_router.register(r"feeding-time",DogFeedingTimeViewSet,basename="feeding-time")
+
+
+# profile_customer_router= routers.register(r"profilecustomer", CustomerProfileViewSet).register(
+#     r"dogs",
+#     DogProfileViewSet,
+#     basename="profilecustomer-dogs",
+#     parents_query_lookups=["customer"],
+# )
+
+# profile_customer_route.register(
+#     r"feeding-time",
+#     DogProfileViewSet,
+#     basename="feeding-time",
+#     parents_query_lookups=["dog"]
+# )
+
 
 urlpatterns = [path("token/", AuthToken.as_view(), name="token")]
 urlpatterns += router.urls
+urlpatterns+=profilehost_router.urls
+urlpatterns+=profile_customer_router.urls
+urlpatterns+=host_service_router.urls
+urlpatterns+=dogs_router.urls
+urlpatterns+=feeding_time_router.urls

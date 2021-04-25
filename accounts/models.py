@@ -185,7 +185,16 @@ class HostAvailableDate(models.Model):
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return f"Host : {self.host}\nDate : {self.date}"
+        return self.date
+
+
+class DogFeedingTime(models.Model):
+    dog=models.ForeignKey(
+        Dog,on_delete=models.CASCADE,related_name="dog_feeding_time"
+    )
+    time=models.TimeField()
+    def __str__(self):
+        return str(self.time)
 
 
 class HouseImages(models.Model):
