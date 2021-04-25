@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.utils import timezone
 import pytz
-import datetime
+from datetime import date, datetime, timedelta
 #py manage.py makemigrations
 #py manage.py migrate
 #coverage run --omit="*/hostdog/*" manage.py test
@@ -459,4 +459,21 @@ class TestAPI(APITestCase):
         self.assertEqual(response2.status_code,status.HTTP_200_OK)
         self.assertEqual(response3.status_code,status.HTTP_204_NO_CONTENT)
 
+    def test_host_availabledate(self):
+        self.client.force_authenticate(user=self.acc_001,token=self.t_acc001)
+
+        url = reverse('accounts:profilehost-availabledate-list',kwargs={'host_pk':self.acc_001.id}) 
+
+        data1={
+            'date': date.today() + timedelta(days=1)
+        }
+        response1=self.client.post(url,data1,format='json')
+        
+        data2={
+            'date': date.today() - timedelta(days=1)
+        }
+        response2=self.client.post(url,data2,format='json')
+        
+        self.assertEqual(response1.status_code,status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code,status.HTTP_400_BAD_REQUEST)
 
