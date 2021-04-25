@@ -15,7 +15,6 @@ from service.models import Service
 from datetime import date
 
 
-
 class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for account model
@@ -273,18 +272,18 @@ class HostProfileSerializer(serializers.ModelSerializer):
             return "-"
         return distance
 
-class DogFeedingTimeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=DogFeedingTime
-        fields=["id","dog","time"]
-        read_only_fields = ["dog"]
-    def create(self,validated_data):
-        dog_id=self.context["view"].kwargs["dog_pk"]
-        print(dog_id)
-        dog=Dog.objects.get(id=dog_id)
-        print(dog)
-        print(validated_data)
-        feeding_time=DogFeedingTime.objects.create(dog=dog,**validated_data)
-        print(feeding_time)
-        return feeding_time
 
+class DogFeedingTimeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for dog feeding time model
+    """
+    class Meta:
+        model = DogFeedingTime
+        fields = ["id", "dog", "time"]
+        read_only_fields = ["dog"]
+
+    def create(self, validated_data):
+        dog_id = self.context["view"].kwargs["dog_pk"]
+        dog = Dog.objects.get(id=dog_id)
+        feeding_time = DogFeedingTime.objects.create(dog=dog, **validated_data)
+        return feeding_time

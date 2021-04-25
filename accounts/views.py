@@ -297,17 +297,14 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return serializer_class
 
 class DogFeedingTimeViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
+    """
+    API endpoint for dog feeding time
+        TODO:
+            - Permission
+    """
     queryset=DogFeedingTime.objects.all()
     serializer_class=DogFeedingTimeSerializer
     
-    # def get_queryset(self):
-    #     queryset=DogFeedingTime.objects.all()
-    #     dog_pk=self.view.kwargs.get("dog_pk")
-    #     print(dog_pk)
-    #     if dog_pk:
-    #         return queryset.filter(dog=dog_pk)
-    #     return queryset
-
 class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for manageing Host's house image
