@@ -181,24 +181,39 @@ class HostAvailableDate(models.Model):
     Host available date model
     """
 
-    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="host_available_date")
+    host = models.ForeignKey(
+        Host, on_delete=models.CASCADE, related_name="host_available_date"
+    )
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return f"Host : {self.host}\nDate : {self.date}"
+        return self.date
+
+
+class DogFeedingTime(models.Model):
+    """
+    Dog feeding time model
+    """
+
+    dog = models.ForeignKey(
+        Dog, on_delete=models.CASCADE, related_name="dog_feeding_time"
+    )
+    time = models.TimeField()
+
+    def __str__(self):
+        return str(self.time)
 
 
 class HouseImages(models.Model):
     """
     House image model
     """
+
     def path_and_rename(instance, filename):
         extension = filename.split(".")[-1]
         return f"houses/{uuid4().hex}.{extension}"
 
-    host = models.ForeignKey(
-        Host, on_delete=models.CASCADE, related_name="house_image"
-    )
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="house_image")
     picture = models.ImageField(
         verbose_name=_("House picture"), upload_to=path_and_rename, blank=True
     )

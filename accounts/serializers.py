@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+
+
 from accounts.models import (
     Accounts,
     Customer,
@@ -7,6 +9,7 @@ from accounts.models import (
     Dog,
     HostAvailableDate,
     HouseImages,
+    DogFeedingTime,
 )
 from service.models import Service
 from datetime import date
@@ -242,7 +245,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = (
+        fields = [
             "account",
             "picture",
             "house_image",
@@ -260,7 +263,8 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "latitude",
             "longitude",
             "distance",
-        )
+        ]
+        read_only_fields = ["account"]
 
     def get_distance(self, validated_data):
         try:
@@ -269,3 +273,19 @@ class HostProfileSerializer(serializers.ModelSerializer):
             print(e)
             return "-"
         return distance
+
+
+class DogFeedingTimeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for dog feeding time model
+    """
+    class Meta:
+        model = DogFeedingTime
+        fields = ["id", "dog", "time"]
+        read_only_fields = ["dog"]
+
+    def create(self, validated_data):
+        dog_id = self.context["view"].kwargs["dog_pk"]
+        dog = Dog.objects.get(id=dog_id)
+        feeding_time = DogFeedingTime.objects.create(dog=dog, **validated_data)
+        return feeding_time

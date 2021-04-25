@@ -7,9 +7,11 @@ from accounts.serializers import (
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
+    DogFeedingTimeSerializer,
     HouseImagesSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, HouseImages
+from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, DogFeedingTime, HouseImages
+
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -53,7 +55,7 @@ class DogOwnerPermission(BasePermission):
 
     def has_permission(self, request, view):
         if view.action == "create":
-            parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
+            parent_lookup_customer = view.kwargs.get("customer_pk")
             if (
                 parent_lookup_customer is not None
                 and Accounts.objects.get(id=parent_lookup_customer) != request.user
@@ -89,7 +91,7 @@ class AvailableDateOwnPermission(BasePermission):
 
     def has_permission(self, request, view):
         if view.action == "create":
-            parent_lookup_host = view.kwargs.get("parent_lookup_host")
+            parent_lookup_host = view.kwargs.get("host_pk")
             if (
                 parent_lookup_host is not None
                 and Accounts.objects.get(id=parent_lookup_host) != request.user
@@ -159,7 +161,6 @@ class AuthToken(ObtainAuthToken):
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        print(user)
         token, created = Token.objects.get_or_create(user=user)
         return Response(
             {
@@ -185,7 +186,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        parent_lookup = self.kwargs.get("parent_lookup_customer")
+        parent_lookup = self.kwargs.get("customer_pk")
         if parent_lookup:
             serializer_class = DogProfileWithNestedSerializer
         else:
@@ -233,8 +234,8 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = Host.nearest_host.filter(
             host_available_date__date__isnull=False
         ).distinct()
-        print(dist, weekday, exact_date, date_range, area_range)
-        print(queryset)
+        #print(dist, weekday, exact_date, date_range, area_range)
+        #print(queryset)
         if dist:
             customer = Customer.objects.get(account=self.request.user)
             lat = customer.latitude
@@ -286,14 +287,22 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        parent_lookup = self.kwargs.get("parent_lookup_host")
+        parent_lookup = self.kwargs.get("host_pk")
         if parent_lookup:
             serializer_class = HostAvailableDateWithNestedSerializer
         else:
             serializer_class = HostAvailableDateSerializer
         return serializer_class
 
-
+class DogFeedingTimeViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
+    """
+    API endpoint for dog feeding time
+        TODO:
+            - Permission
+    """
+    queryset=DogFeedingTime.objects.all()
+    serializer_class=DogFeedingTimeSerializer
+    
 class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for manageing Host's house image

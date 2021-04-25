@@ -13,3 +13,4 @@ router.register("meals", MealViewSet)
 
 
 urlpatterns = router.urls
+print(f"URL patterns size at service : {len(urlpatterns)}")

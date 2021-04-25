@@ -152,15 +152,10 @@ class API_Testing(APITestCase):
         3.) register date that in service (FAIL)
         """
         # Reverse view -> url
-        # App : accounts
-        # url_name :
-        self.client.force_authenticate(
-            user=self.acc_host_001, token=self.token_acc_host_001
-        )
-        url = reverse(
-            "accounts:profilehost-availabledate-list",
-            kwargs={"parent_lookup_host": self.acc_host_001.id},
-        )
+        #App : accounts
+        #url_name : 
+        
+        url = reverse("accounts:profilehost-availabledate-list", kwargs={"host_pk": self.acc_host_001.id})
         # url = api/profilehost/idของhostคนนี้/available-date/
         # 1
         yesterday = date.today() - timedelta(days=1)

@@ -12,5 +12,4 @@ def create_host_service(sender, instance, created, **kwargs):
         - *host service (see Model HostService in service/models.py)
     """
     if created:
-        print(sender, instance, created)
         HostService.objects.create(host=instance)

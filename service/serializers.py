@@ -55,7 +55,6 @@ class ServiceSerializer(serializers.ModelSerializer):
             - check if service_start_time, service_end_time is valid for host
             - Customer cant choose day in the past
         """
-        print(attrs)
         is_dog_walk = attrs["is_dog_walk"]
         is_get_dog = attrs["is_get_dog"]
         is_delivery_dog = attrs["is_delivery_dog"]
