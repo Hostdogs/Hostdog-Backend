@@ -10,13 +10,13 @@ class Payments(models.Model):
 
     is_paid=models.BooleanField(default=false)
 
-    pay_date=models.TimeField()
+    pay_date=models.TimeField(blank=True)
     
     pay_total=models.FloatField()
 
     type_payments=models.CharField(choices=TYPE_PAYMENT)
 
-    
+
 
     def __str__(self):
         return str(pay_bank_name)+' '+str(pay_total)
