@@ -51,7 +51,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "accounts",
     "service",
-    "notifications"
+    "notifications",
+    "django_celery_beat",
+    "django_celery_results"
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -176,5 +178,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
 }
+
+CELERY_RESULT_BACKEND = "django-db"
 
 django_heroku.settings(locals())

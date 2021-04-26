@@ -38,6 +38,8 @@ class HostService(models.Model):
     available_meals = models.ManyToManyField(
         Meal, related_name="available_meals"
     )
+    late_price = models.IntegerField(default=20)
+    deposit_price = models.IntegerField(default=300)
 
     def __str__(self):
         return (
@@ -60,7 +62,9 @@ class Service(models.Model):
         ("pending", "Pending"),
         ("payment", "Payment"),
         ("end", "End"),
+        ("wait_for_progress", "Wait for progress"),
         ("in_progress", "In progress"),
+        ("late", "Late"),
         ("cancelled", "Cancelled"),
     )
     STATUS = (
@@ -69,6 +73,7 @@ class Service(models.Model):
         ("caring_for_your_dog", "Caring for your dog"),
         ("come_and_get_your_dog", "Come and get your dog"),
         ("service_success", "Service success"),
+        ("you_cancel_this_service", "You cancel this service")
     )
     host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="service_host")
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="service_customer")
@@ -91,6 +96,9 @@ class Service(models.Model):
         HostService, on_delete=models.CASCADE, related_name="additional_service"
     )
     service_bio = models.TextField(max_length=255, default="")
+    created_deposit_payment = models.BooleanField(default=False)
+    created_late_payment = models.BooleanField(default=False)
+    days_late = models.IntegerField(default=0)
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
