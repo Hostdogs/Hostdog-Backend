@@ -10,7 +10,7 @@ class Payments(models.Model):
 
     is_paid=models.BooleanField(default=false)
 
-    pay_date=models.TimeField(blank=True)
+    pay_date=models.DateTimeField(blank=True)
     
     pay_total=models.FloatField()
 

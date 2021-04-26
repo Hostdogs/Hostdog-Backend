@@ -7,7 +7,7 @@ def create_payment_post_save(sender,instance,created,**kwargs):
 
     print('post_save working')
 
-    if instance.main_status=="payment":
+    if instance.main_status=="payment" and not instance.created_deposit_payment:
         print('if payment in post_save working')
         host_service_instance=instance.additional_service
         total_price=0
@@ -27,22 +27,13 @@ def create_payment_post_save(sender,instance,created,**kwargs):
                 total_price+=host_service_price[i]
 
         Payments.objects.create(service=instance,pay_total=total_price,type_payments='deposit')
-        
-    else if instance.main_status=='late':
-        pass
+        instance.created_deposit_payment=True
+        instance.save()
+
+    else if instance.main_status=='late' and not instance.created_late_payment:
+        Payments.objects.create(service=instance,pay_total=instance.additional_service.late_price,type_payments='late')
+        instance.created_late_payment=True
+        instance.save()
 
 
-        
-
-    # service=models.ForeignKey(
-    #     Service,on_delete=models.CASCADE, related_name="service-payments"
-    # )
-
-    # is_paid=models.BooleanField(default=false)
-
-    # pay_date=models.TimeField()
-    
-    # pay_total=models.FloatField()
-
-    # type_payments=models.CharField(choices=TYPE_PAYMENT)
 

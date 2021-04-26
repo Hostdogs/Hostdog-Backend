@@ -1,6 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import ServiceViewSet, MealViewSet, HostServiceViewSet
+from payment.views import PaymentViewSet
+from rest_framework_nested import routers
 
 app_name = "service"
 
