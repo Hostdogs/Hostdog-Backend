@@ -51,7 +51,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "accounts",
     "service",
-    "notifications"
+    "notifications",
+    "django_celery_beat",
+    "django_celery_results"
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -176,5 +178,15 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
 }
+
+CELERY_RESULT_BACKEND = "django-db"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER = "patpumhak@gmail.com"
+EMAIL_HOST_PASSWORD = "isuybgkqbaalujaf"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "patpumhak@gmail.com"
 
 django_heroku.settings(locals())
