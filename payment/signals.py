@@ -9,8 +9,9 @@ def create_payment_post_save(sender,instance,created,**kwargs):
 
     if instance.main_status=="payment" and not instance.created_deposit_payment:
         print('if payment in post_save working')
+
         host_service_instance=instance.additional_service
-        total_price=0
+        total_price=instance.service.additional_service.deposit_price
         host_service_price=[host_service_instance.price_dog_walk,
                         host_service_instance.price_get_dog,
                         host_service_instance.price_deliver_dog,

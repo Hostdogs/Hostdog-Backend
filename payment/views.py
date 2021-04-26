@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from payment.models import Payments
-from payment.serializers import PaymentSerializer
+from payment.serializers import PaymentSerializer,PaymentAcceptSerializer
 from rest_framework.response import Response
 from django.utils import timezone
 # Create your views here.
@@ -11,9 +11,19 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     @action(method=["post"],detail=True)
     def pay(self,request,pk=None):
-        payment=self.get_object()
-        payment.is_paid=True
-        payment.pay_date=timezone.now()
-        payment.save()
+    #TO-DO: notification payment
+        serializer=PaymentAcceptSerializer(data=request.data):
+        if serializer.is_valid():
+            if serializer.data.get("accept_payment"):
+                payment=self.get_object()
+                payment.is_paid=True
+                payment.pay_date=timezone.now()
+                payment.save()
+                
+                return Response(
+                {"status": "success", "message": "Pay Accept Failed"},
+                status=status.HTTP_200_OK,)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
