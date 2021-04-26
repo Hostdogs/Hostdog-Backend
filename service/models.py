@@ -27,14 +27,17 @@ class HostService(models.Model):
     """
 
     host = models.OneToOneField(Host, on_delete=models.CASCADE, primary_key=True, related_name="hostservice_host")
+
     price_dog_walk = models.FloatField(default=0.0)
     price_get_dog = models.FloatField(default=0.0)
     price_deliver_dog = models.FloatField(default=0.0)
     price_bath_dog = models.FloatField(default=0.0)
+
     enable_dog_walk = models.BooleanField(default=True)
     enable_get_dog = models.BooleanField(default=True)
     enable_delivery_dog = models.BooleanField(default=True)
     enable_bath_dog = models.BooleanField(default=True)
+    
     available_meals = models.ManyToManyField(
         Meal, related_name="available_meals"
     )

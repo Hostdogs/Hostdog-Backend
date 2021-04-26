@@ -13,3 +13,4 @@ def create_host_service(sender, instance, created, **kwargs):
     """
     if created:
         HostService.objects.create(host=instance)
+

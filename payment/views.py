@@ -6,3 +6,4 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     queryset=Payments.objects.all()
     serializer_class=PaymentSerializer
+    http_method_names = ["get"]
