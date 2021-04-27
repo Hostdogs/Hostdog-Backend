@@ -13,6 +13,7 @@ from accounts.models import (
 )
 from service.models import Service
 from datetime import date
+from django.utils.timezone import datetime, make_aware
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -188,11 +189,12 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
                 "This date has already been assigned for this host"
             )
 
+        min_time = datetime.min.time()
         in_progess_service = Service.objects.filter(
             host=host,
-            service_start_time__lte=value,
-            service_end_time__gte=value,
-            main_status="in_progress",
+            service_start_time__lte=make_aware(datetime.combine(value, min_time)),
+            service_end_time__gte=make_aware(datetime.combine(value, min_time)),
+            main_status__in=["in_progress", "wait_for_progress", "payment"],
         )
         if in_progess_service.exists():
             raise serializers.ValidationError("This date in in your service date")
