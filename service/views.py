@@ -71,20 +71,61 @@ class ServiceViewSet(viewsets.ModelViewSet):
     @action(methods=["post"], detail=True, url_path="response", url_name="response")
     def response(self, request, pk=None):
         """
-        Accept or Decline customer request
+        Accept or Decline something at request
         """
         service = self.get_object()
+        user = self.request.user
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            response = serializer.data["response"]
-            if response:
-                service.accept()
-                return Response({"success": "Service accepted"}, status=status.HTTP_200_OK)
-            else:
-                service.decline()
-                return Response({"success": "Service decline"}, status=status.HTTP_200_OK)
+            response = serializer.data.get("response")
+            cancel = serializer.data.get("cancel")
+            review = serializer.data.get("review")
+            return_dog = serializer.data.get("return_dog")
+            receive_dog = serializer.data.get("receive_dog")
+            if user.is_host: # Host
+                if service.main_status == "pending": # Accept/Decline
+                    if response:
+                        service.accept()
+                        return Response(
+                            {"success": "Service accepted"}, status=status.HTTP_200_OK
+                        )
+                    else:
+                        service.decline()
+                        return Response(
+                            {"success": "Service decline"}, status=status.HTTP_200_OK
+                        )
+                elif service.main_status == "in_progress": 
+                    if receive_dog: # Host ยืนยันการรับหมา
+                        host_receive_dog_success = service.host_receive_dog()
+                        response_data = {"success": "Host receive dog success"} if host_receive_dog_success else {"fail": "Can't receive dog"}
+                        status_code = status.HTTP_200_OK if host_receive_dog_success else status.HTTP_400_BAD_REQUEST
+                        return Response(response_data, status=status_code)
+                    elif return_dog: # Host ยืนยันการคืนหมา
+                        return_dog_success = service.return_dog()
+                        response_data = {"success": "Host return dog success"} if return_dog_success else {"fail": "Can't return dog"}
+                        status_code = status.HTTP_200_OK if return_dog_success else status.HTTP_400_BAD_REQUEST
+                        return Response(response_data, status=status_code)
+            else: # Customer
+                if service.main_status != "late": #ยกเลิกบริการ
+                    if cancel:
+                        cancel_success = service.cancel()
+                        response_data = {"success": "Service cancelled"} if cancel_success else {"fail": "Can't cancel service"}
+                        status_code = status.HTTP_200_OK if cancel_success else status.HTTP_400_BAD_REQUEST
+                        return Response(response_data, status=status_code)
+                elif service.main_status == "in_progress":  # กดรับหมา
+                    if receive_dog:
+                        customer_receive_dog_success = service.customer_receive_dog()
+                        response_data = {"success": "Customer receive dog success"} if customer_receive_dog_success else {"fail": "Customer fail to receive dog"}
+                        status_code = status.HTTP_200_OK if customer_receive_dog_success else status.HTTP_400_BAD_REQUEST
+                        return Response(response_data, status=status_code)
+                elif service.main_status == "end" and not service.is_review: # รีวิวบริการ
+                    if review:
+                        review_success = service.review(review)
+                        response_data = {"success": "Review service success"} if review_success else {"fail": "Can't review service"}
+                        status_code = status.HTTP_200_OK if review_success else status.HTTP_400_BAD_REQUEST
+                        return Response(response_data, status=status_code)
         else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MealViewSet(viewsets.ModelViewSet):

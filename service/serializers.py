@@ -144,8 +144,11 @@ class ServiceResponseSerializer(serializers.Serializer):
     Serializer for host to response back to customer
         - accept service or decline service
     """
-
-    accept = serializers.BooleanField(required=True)
+    accept = serializers.BooleanField()
+    cancel = serializers.BooleanField()
+    review = serializers.IntegerField()
+    receive_dog = serializers.BooleanField()
+    return_dog = serializers.BooleanField()
 
 
 class MealSerializer(serializers.ModelSerializer):
