@@ -2,7 +2,7 @@ from django.db import models
 from service.models import Service
 # Create your models here.
 class Payments(models.Model):
-    TYPE_PAYMENT=(('deposit','Deposit')('late','Late'))
+    TYPE_PAYMENT=(('deposit','Deposit'),('late','Late'))
 
     service=models.ForeignKey(
         Service,on_delete=models.CASCADE, related_name="service-payments"

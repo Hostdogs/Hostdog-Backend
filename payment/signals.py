@@ -36,5 +36,12 @@ def create_payment_post_save(sender,instance,created,**kwargs):
         instance.created_late_payment=True
         instance.save()
 
+    else if instance.main_status=='end' and not Payments.objects.get(service=instance).is_paid:
+        Payments.objects.get(service=instance).is_paid=True
+        Payments.objects.get(service=instance).save()
+
+    
+
+
 
 
