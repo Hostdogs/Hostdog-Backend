@@ -11,7 +11,14 @@ router = DefaultRouter()
 /api/service/.../
 """
 router.register("services", ServiceViewSet)
+
+
+host_service_router=DefaultRouter()
+
+
 router.register("meals", MealViewSet)
+
+
 
 
 urlpatterns = router.urls

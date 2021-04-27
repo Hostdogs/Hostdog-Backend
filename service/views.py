@@ -110,3 +110,9 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = HostService.objects.all()
     serializer_class = HostServiceSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
+
+class MealViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset=Meal.objects.all()
+    serializer_class=MealSerializer
+    
+
