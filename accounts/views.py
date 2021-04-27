@@ -23,7 +23,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import (
     IsAuthenticated,
     BasePermission,
-    IsAdminUser,
     SAFE_METHODS,
 )
 from datetime import date, timedelta, datetime
@@ -144,10 +143,10 @@ class AccountsViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):
-        if self.action in {"list", "update", "partial_update"}:
-            self.permission_classes = [IsAdminUser]
-        elif self.action in {"retrieve", "destroy", "set_password"}:
+        if self.action in {"update", "partial_update", "destroy", "set_password"}:
             self.permission_classes = [IsOwnerOrAdmin]
+        elif self.action in {"list", "retrieve",}:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
 

@@ -17,6 +17,7 @@ class Accounts(AbstractUser):
     """
 
     is_host = models.BooleanField(default=False)
+    account_number=models.CharField(max_length=20)
     first_name = None
     last_name = None
 
@@ -65,7 +66,7 @@ class Host(models.Model):
         extension = filename.split(".")[-1]
         return f"hosts/{uuid4().hex}.{extension}"
 
-    GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
+    GENDER_OPTIONS = (("male", "Male"), ("female", "Female"), ("none", "None"))
     account = models.OneToOneField(
         Accounts,
         on_delete=models.CASCADE,
@@ -112,7 +113,7 @@ class Customer(models.Model):
         extension = filename.split(".")[-1]
         return f"customers/{uuid4().hex}.{extension}"
 
-    GENDER_OPTIONS = (("male", "Male"), ("female", "Female"))
+    GENDER_OPTIONS = (("male", "Male"), ("female", "Female"), ("none", "None"))
     account = models.OneToOneField(
         Accounts,
         on_delete=models.CASCADE,
