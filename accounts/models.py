@@ -188,7 +188,7 @@ class HostAvailableDate(models.Model):
     date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
-        return self.date
+        return str(self.date)
 
 
 class DogFeedingTime(models.Model):

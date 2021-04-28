@@ -1,7 +1,7 @@
-from datetime import date, timedelta
 from accounts.models import Customer, HostAvailableDate
 from rest_framework import serializers
 from service.models import Service, Meal, HostService
+from django.utils.timezone import localtime, timedelta
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -30,21 +30,20 @@ class ServiceSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        print(f"Context : {self.context['request'].user}")
         customer = Customer.objects.get(account=self.context["request"].user)
         additional_service = HostService.objects.get(host=validated_data["host"])
         service = Service.objects.create(
             customer=customer, additional_service=additional_service, **validated_data
         )
         return service
-
+    
     def validate_service_start_time(self, value):
-        if value < date.today():
+        if value < localtime():
             raise serializers.ValidationError("Do you have a time machine?")
         return value
 
     def validate_service_end_time(self, value):
-        if value < date.today():
+        if value < localtime():
             raise serializers.ValidationError("Do you have a time machine?")
         return value
 
@@ -62,7 +61,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         host = attrs["host"]
         service_start_time = attrs["service_start_time"]
         service_end_time = attrs["service_end_time"]
-        service_delta = service_end_time - service_start_time
+        service_delta = service_end_time.date() - service_start_time.date()
         host_service = HostService.objects.get(host=host)
 
         if is_dog_walk and not host_service.enable_dog_walk:
@@ -89,7 +88,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"service_start_time": ["start time is greater than end time"]})
 
         all_date_within_interval = [
-            service_start_time + timedelta(days=i)
+            service_start_time.date() + timedelta(days=i)
             for i in range(service_delta.days + 1)
         ]
         for choose_date in all_date_within_interval:
@@ -145,8 +144,11 @@ class ServiceResponseSerializer(serializers.Serializer):
     Serializer for host to response back to customer
         - accept service or decline service
     """
-
-    accept = serializers.BooleanField(required=True)
+    accept = serializers.BooleanField()
+    cancel = serializers.BooleanField()
+    review = serializers.IntegerField()
+    receive_dog = serializers.BooleanField()
+    return_dog = serializers.BooleanField()
 
 
 class MealSerializer(serializers.ModelSerializer):

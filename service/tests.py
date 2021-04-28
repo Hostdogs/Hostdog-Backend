@@ -3,9 +3,10 @@ from django.urls import reverse
 from accounts.models import Customer, Dog, Host, Accounts, HostAvailableDate
 from service.models import HostService, Service, Meal
 from rest_framework.test import APIClient, APITestCase
-from datetime import date, datetime, timedelta
+from datetime import date
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from django.utils.timezone import datetime, localtime, timedelta
 
 # py manage.py makemigrations
 # py manage.py migrate
@@ -131,8 +132,8 @@ class API_Testing(APITestCase):
             customer=self.customer,
             host=self.host,
             dog=self.dog_001,
-            service_start_time=date.today(),
-            service_end_time=date.today() + timedelta(days=1),
+            service_start_time=localtime(),
+            service_end_time=localtime() + timedelta(days=1),
             service_meal_type=self.meal_001,
             service_meal_per_day=2,
             service_meal_weight=15,
@@ -158,7 +159,7 @@ class API_Testing(APITestCase):
         url = reverse("accounts:profilehost-availabledate-list", kwargs={"host_pk": self.acc_host_001.id})
         # url = api/profilehost/idของhostคนนี้/available-date/
         # 1
-        yesterday = date.today() - timedelta(days=1)
+        yesterday =  date.today() - timedelta(days=1)
         data1 = {"date": yesterday}
         response1 = self.client.post(url, data1, format="json")
         # 2
@@ -166,7 +167,7 @@ class API_Testing(APITestCase):
         data2 = {"date": future_day}
         response2 = self.client.post(url, data2, format="json")
         # 3
-        data3 = {"date": self.service.service_end_time}
+        data3 = {"date": self.service.service_end_time.date()}
         response3 = self.client.post(url, data3, format="json")
 
         self.assertEqual(response1.status_code, status.HTTP_400_BAD_REQUEST)
@@ -227,8 +228,8 @@ class ServiceViewSetTesting(APITestCase):
             "host": self.host.account.id,
             "dog": self.dog_001.id,
             "service_is_over_night": True,
-            "service_start_time": date.today(),
-            "service_end_time": date.today() + timedelta(days=1),
+            "service_start_time": localtime() + timedelta(hours=3),
+            "service_end_time": localtime() + timedelta(days=1),
             "service_meal_type": self.meal_001.id,
             "service_meal_per_day": 2,
             "service_meal_weight": 50,
@@ -244,8 +245,8 @@ class ServiceViewSetTesting(APITestCase):
             "host": self.host.account.id,
             "dog": self.dog_001.id,
             "service_is_over_night": True,
-            "service_start_time": date.today(),
-            "service_end_time": date.today() + timedelta(days=2),
+            "service_start_time": localtime() + timedelta(hours=3),
+            "service_end_time": localtime() + timedelta(days=2),
             "service_meal_type": self.meal_001.id,
             "service_meal_per_day": 2,
             "service_meal_weight": 50,
@@ -261,8 +262,8 @@ class ServiceViewSetTesting(APITestCase):
             "host": self.host.account.id,
             "dog": self.dog_001.id,
             "service_is_over_night": True,
-            "service_start_time": date(2021, 1, 2),
-            "service_end_time": date(2021, 1, 3),
+            "service_start_time": datetime(2021, 1, 2),
+            "service_end_time": datetime(2021, 1, 3),
             "service_meal_type": self.meal_001.id,
             "service_meal_per_day": 2,
             "service_meal_weight": 50,

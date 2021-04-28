@@ -56,3 +56,30 @@ def send_email_customer_service_reach(
         ],
     )
     return email.send(fail_silently=False)
+
+
+def send_email_customer_host_response(
+    email, customer_first_name, customer_last_name, host_first_name, host_last_name, accept
+):
+    """
+    3.) ส่งหา Customer เมื่อ Host ตอบรับการบริการ
+    """
+    context = {
+        "accept" : accept,
+        "customer_first_name": customer_first_name,
+        "customer_last_name": customer_last_name,
+        "host_first_name": host_first_name,
+        "host_last_name": host_last_name,
+        "email": email,
+    }
+    email_subject = f"Host ได้{'ยืนยัน' if accept else 'ปฏิเสธ'}การบริการของคุณแล้ว"
+    email_body = render_to_string("email_customer_host_accept.txt", context)
+    email = EmailMessage(
+        email_subject,
+        email_body,
+        settings.DEFAULT_FROM_EMAIL,
+        [
+            email,
+        ],
+    )
+    return email.send(fail_silently=False)

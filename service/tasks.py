@@ -1,7 +1,6 @@
 from celery.decorators import task
-from datetime import datetime, date
 from service.models import Service
-from django.db.models import F
+from django.utils.timezone import localtime, timedelta
 from notifications.tasks import send_email_customer_service_reach_task
 
 
@@ -23,7 +22,7 @@ def check_wait_for_progress_service():
     """
 
     all_service_wait_for_progress_today = Service.objects.filter(
-        main_status="wait_for_progress", service_start_time=date.today()
+        main_status="wait_for_progress", service_start_time__lte=localtime()
     )
     for service in all_service_wait_for_progress_today: # ทำการส่งอีเมลล์แจ้งเตือน และ แก้ไขค่าใน service
         customer = service.customer
@@ -69,11 +68,11 @@ def check_in_progress_service_that_late():
     schedule : ทำการรัน Task นี้ทุก 1 นาที
     """
     in_progress_service_that_late = Service.objects.filter(
-        main_status="in_progress", service_end_time__lt=date.today()
+        main_status="in_progress", service_end_time__lt=localtime() + timedelta(days=1)
     )
     for service in in_progress_service_that_late:
         service.main_status = "late"
-        service.days_late = (date.today() - service.service_end_time).days
+        service.days_late = (localtime() - service.service_end_time).days
         service.save()
     # TODO:
     #   - Payment ต้อง Listening ที่ post_save signal ว่ามีการเปลี่ยนแปลงที่ field created_late_payment

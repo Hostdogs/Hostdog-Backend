@@ -1,0 +1,3 @@
+Hello {{customer_first_name|safe}} {{customer_last_name|safe}}
+Your host {{host_first_name}} {{host_last_name|safe}} has {% if accept %}accept{% else %}decline{% endif %} your request
+check this out at Hostdog website.

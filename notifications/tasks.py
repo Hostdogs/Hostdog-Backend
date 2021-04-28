@@ -3,6 +3,7 @@ from celery.decorators import task
 from notifications.email import (
     send_email_host_service,
     send_email_customer_service_reach,
+    send_email_customer_host_response
 )
 
 logger = get_task_logger(__name__)
@@ -38,3 +39,8 @@ def send_email_customer_service_reach_task(
         start_date,
         end_date,
     )
+
+@task(name="send_email_to_customer_on_host_accept")
+def send_email_customer_host_response_task(email, customer_first_name, customer_last_name, host_first_name, host_last_name, accept):
+    logger.info("Send host response to customer")
+    return send_email_customer_host_response(email, customer_first_name, customer_last_name, host_first_name, host_last_name, accept)
