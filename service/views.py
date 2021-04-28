@@ -155,12 +155,15 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     
     @action(methods=["post"],detail=True)
     def add_meal(self,request,pk=None):
+
         serializer=MealSerializer(data=request.data)
+
         all_meal=Meal.objects.all()
 
         if serializer.is_valid():
 
             service_meal_id=serializer.data.get("id")
+            meal=Meal.objects.get(id=service_meal_id)
 
             if  service_meal_id in all_meal.meal_type:
 
@@ -168,6 +171,7 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 host_service.available_meals.clear()
                 host_service.available_meals.add(serializer)
                 host_service.save()
+                
                 return Response(
                     {"status": "success", "message": "add Meal Completed"},
                     status=status.HTTP_200_OK,)
