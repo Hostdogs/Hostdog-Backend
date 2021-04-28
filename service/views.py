@@ -60,10 +60,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        if self.action == "create":
+        if self.action == "response":
+            serializer_class = ServiceResponseSerializer 
+        elif self.action == "create":
             serializer_class = ServiceSerializer
-        elif self.action == "response":
-            serializer_class = ServiceResponseSerializer
         else:
             serializer_class = ServiceDetailSerializer
         return serializer_class
@@ -75,16 +75,16 @@ class ServiceViewSet(viewsets.ModelViewSet):
         """
         service = self.get_object()
         user = self.request.user
-        serializer = self.serializer_class(data=request.data)
+        serializer = ServiceResponseSerializer(data=request.data)
         if serializer.is_valid():
-            response = serializer.data.get("response")
+            accept = serializer.data.get("accept")
             cancel = serializer.data.get("cancel")
             review = serializer.data.get("review")
             return_dog = serializer.data.get("return_dog")
             receive_dog = serializer.data.get("receive_dog")
             if user.is_host: # Host
                 if service.main_status == "pending": # Accept/Decline
-                    if response:
+                    if accept:
                         service.accept()
                         return Response(
                             {"success": "Service accepted"}, status=status.HTTP_200_OK

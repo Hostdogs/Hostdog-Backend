@@ -26,7 +26,7 @@ def send_email_when_service_create(sender, instance, created, **kwargs):
     if created:
         host = instance.host
         customer = instance.customer
-        email = host.account
+        email = host.account.email
         send_email_host_service_task(
             email,
             customer.first_name,

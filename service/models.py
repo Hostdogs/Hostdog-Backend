@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import Host, Customer, Dog, HostAvailableDate
 from payment.models import Payments
+from django.utils.timezone import localtime
 from django.db.models import Sum
 from notifications.tasks import (
     send_email_customer_host_response_task,
@@ -122,7 +123,7 @@ class Services(models.Model):
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
 
-    def accept(self, is_host):
+    def accept(self):
         """
         If host accept the service
             - service main_status change to wait_for_progress [x]
@@ -142,9 +143,12 @@ class Services(models.Model):
             )
             self.main_status = "wait_for_progress"
             date_range = (
-                self.service_start_time.date(),
-                self.service_end_time.date(),
+                localtime(self.service_start_time).date(),
+                localtime(self.service_end_time).date(),
             )
+            print('self.service_start_time:',self.service_start_time)
+            print('self.service_end_time:',self.service_end_time)
+            print('date_range:',date_range)
             HostAvailableDate.objects.filter(
                 host=self.host, date__range=date_range
             ).delete()
@@ -152,7 +156,7 @@ class Services(models.Model):
             return True
         return False
 
-    def decline(self, is_host):
+    def decline(self):
         """
         If host decline the service
             - service main_status change to cancelled

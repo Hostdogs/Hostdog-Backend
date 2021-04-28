@@ -1,15 +1,15 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save,pre_save
 from django.dispatch import receiver
 from service.models import Services,HostService
 from payment.models import Payments
 from datetime import datetime, date
 from accounts.models import DogFeedingTime
 
-@receiver(post_save,sender=Services)
-def create_payment_post_save(sender,instance,created,**kwargs):
+@receiver(pre_save,sender=Services)
+def create_payment_pre_save(sender,instance,**kwargs):
 
     print('post_save working')
-
+    print("instance.main_status:",instance.main_status,"instance.created_deposit_payment:",instance.created_deposit_payment)
     if instance.main_status=="payment" and not instance.created_deposit_payment:
         print('if payment in post_save working')
 

@@ -53,6 +53,7 @@ def check_wait_for_progress_service():
             end_date,
         )
         service.save()
+        print("service.main_status:",service.main_status)
     # ตรงนี้คือหลังจาก ปรับ service ที่ wait_for_progress เป็น in_progress [x]
     # ส่งเมลล์เตือน Customer [x]
 
