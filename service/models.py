@@ -124,7 +124,6 @@ class Services(models.Model):
     def accept(self, is_host):
         """
         If host accept the service
-        TODO:
             - service main_status change to wait_for_progress [x]
             - delete range of date that cutomer register from host's available date [x]
             - create post_save signal to notification application [x]

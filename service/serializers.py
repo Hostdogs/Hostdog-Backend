@@ -166,7 +166,6 @@ class HostServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = HostService
         fields = [
-            "id",
             "host",
             "price_dog_walk",
             "price_get_dog",

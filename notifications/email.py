@@ -1,6 +1,7 @@
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.conf import settings
+from django.utils.timezone import localtime
 
 
 def send_email_host_service(
@@ -121,6 +122,31 @@ def send_email_host_service_review(email, customer_first_name, customer_last_nam
     }
     email_subject = "Customer ได้ให้คะแนนการให้บริการของคุณ"
     email_body = render_to_string("email_host_service_review.txt", context)
+    email = EmailMessage(
+        email_subject,
+        email_body,
+        settings.DEFAULT_FROM_EMAIL,
+        [
+            email,
+        ],
+    )
+    return email.send(fail_silently=False)
+
+def send_email_customer_near_end_time(email, customer_first_name, customer_last_name, host_first_name, host_last_name, endtime):
+    """
+    6.) ส่งหา Customer เมื่อใกล้ถึงเวลา service_end_time
+    """
+    context = {
+        "starttime": localtime(),
+        "endtime": endtime,
+        "customer_first_name": customer_first_name,
+        "customer_last_name": customer_last_name,
+        "host_first_name": host_first_name,
+        "host_last_name": host_last_name,
+        "email": email,
+    }
+    email_subject = "ใกล้ถึงเวลาสิ้นสุดบริการของคุณแล้ว"
+    email_body = render_to_string("email_customer_near_end_time.txt", context)
     email = EmailMessage(
         email_subject,
         email_body,

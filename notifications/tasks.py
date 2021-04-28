@@ -5,7 +5,8 @@ from notifications.email import (
     send_email_customer_service_reach,
     send_email_customer_host_response,
     send_email_host_service_cancelled,
-    send_email_host_service_review
+    send_email_host_service_review,
+    send_email_customer_near_end_time
 )
 
 logger = get_task_logger(__name__)
@@ -56,3 +57,8 @@ def send_email_host_service_cancelled_task(email, customer_first_name, customer_
 def send_email_host_service_review_task(email, customer_first_name, customer_last_name, host_first_name, host_last_name, review):
     logger.info("Send host about service review score")
     return send_email_host_service_review(email, customer_first_name, customer_last_name, host_first_name, host_last_name, review)
+
+@task(name="send_email_customer_near_end_time")
+def send_email_customer_near_end_time_task(email, customer_first_name, customer_last_name, host_first_name, host_last_name, endtime):
+    logger.info("Send customer about service near end time")
+    return send_email_customer_near_end_time(email, customer_first_name, customer_last_name, host_first_name, host_last_name, endtime)

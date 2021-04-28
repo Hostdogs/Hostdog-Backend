@@ -1,7 +1,10 @@
 from celery.decorators import task
-from service.models import Service
+from service.models import Services
 from django.utils.timezone import localtime, timedelta
-from notifications.tasks import send_email_customer_service_reach_task
+from notifications.tasks import (
+    send_email_customer_service_reach_task,
+    send_email_customer_near_end_time_task,
+)
 
 
 @task(name="add")
@@ -21,10 +24,14 @@ def check_wait_for_progress_service():
     schedule : ทำการรัน Task นี้ทุกๆ 1 นาที
     """
 
-    all_service_wait_for_progress_today = Service.objects.filter(
+    all_service_wait_for_progress_today = Services.objects.filter(
         main_status="wait_for_progress", service_start_time__lte=localtime()
     )
-    for service in all_service_wait_for_progress_today: # ทำการส่งอีเมลล์แจ้งเตือน และ แก้ไขค่าใน service
+    for (
+        service
+    ) in (
+        all_service_wait_for_progress_today
+    ):  # ทำการส่งอีเมลล์แจ้งเตือน และ แก้ไขค่าใน service
         customer = service.customer
         host = service.host
         email = customer.account.email
@@ -46,9 +53,7 @@ def check_wait_for_progress_service():
             end_date,
         )
         service.save()
-    # TODO:
     # ตรงนี้คือหลังจาก ปรับ service ที่ wait_for_progress เป็น in_progress [x]
-    # - สร้าง Notification ให้
     # ส่งเมลล์เตือน Customer [x]
 
     # - ทำการแก้ field ของ Service ว่าได้สร้าง Payment มัดจำเรียบร้อยแล้ว created_deposit_payment = True [x]
@@ -66,7 +71,7 @@ def check_in_progress_service_that_late():
 
     schedule : ทำการรัน Task นี้ทุก 1 นาที
     """
-    in_progress_service_that_late = Service.objects.filter(
+    in_progress_service_that_late = Services.objects.filter(
         main_status="in_progress", service_end_time__lt=localtime() + timedelta(days=1)
     )
     for service in in_progress_service_that_late:
@@ -79,3 +84,29 @@ def check_in_progress_service_that_late():
     #   - ส่งเมลล์แจ้งเตือน
 
     return f"Service that late : {in_progress_service_that_late.count()}"
+
+
+@task(name="notify_near_end_service")
+def notify_near_end_service(before_hour):
+    """
+    Task นี้มีไว้แจ้งเตือน Customer เมื่อ Service ใกล้จะจบลงโดยจะแจ้งเตือนก่อนจบ x ชั่วโมง
+
+    schedule : ทำการรัน Task นี้ทุกๆ 1 ชั่วโมง
+    """
+    service_that_near_end = Services.objects.filter(
+        main_status="in_progress",
+        service_end_time__hour=(localtime() + timedelta(hours=before_hour)).hour,
+    )
+    for service in service_that_near_end:
+        email = service.customer.account.email
+        customer = service.customer
+        host = service.host
+        send_email_customer_near_end_time_task(
+            email,
+            customer.first_name,
+            customer.last_name,
+            host.first_name,
+            host.last_name,
+            service.service_end_time
+        )
+    return f"Service that near end : {service_that_near_end.count()}"

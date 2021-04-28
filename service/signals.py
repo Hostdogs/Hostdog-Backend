@@ -1,8 +1,10 @@
 from payment.models import Payments
 from django.db.models.signals import post_save
 from accounts.models import Host
-from service.models import HostService
+from service.models import HostService, Services
 from django.dispatch import receiver
+from notifications.tasks import send_email_host_service_task
+
 
 @receiver(post_save, sender=Host)
 def create_host_service(sender, instance, created, **kwargs):
@@ -15,6 +17,25 @@ def create_host_service(sender, instance, created, **kwargs):
     if created:
         HostService.objects.create(host=instance)
 
+
+@receiver(post_save, sender=Services)
+def send_email_when_service_create(sender, instance, created, **kwargs):
+    """
+    ส่งอีเมลล์ไปหา Host เมื่อ Service ถูกสร้างจาก Customer
+    """
+    if created:
+        host = instance.host
+        customer = instance.customer
+        email = host.account
+        send_email_host_service_task(
+            email,
+            customer.first_name,
+            customer.last_name,
+            host.first_name,
+            host.last_name,
+        )
+
+
 @receiver(post_save, sender=Payments)
 def update_create_payment_field(sender, instance, created, **kwargs):
     """
@@ -25,7 +46,7 @@ def update_create_payment_field(sender, instance, created, **kwargs):
     """
     service = instance.service
     type_payments = instance.type_payments
-    if created: # ถ้ามีการสร้าง Payment
+    if created:  # ถ้ามีการสร้าง Payment
         if type_payments == "deposit":
             service.created_deposit_payment = True
             service.save()
@@ -33,7 +54,7 @@ def update_create_payment_field(sender, instance, created, **kwargs):
             service.created_late_payment = True
             service.save()
     else:
-        if instance.is_paid: # ถ้ามีการจ่ายเงินเกิดขึ้น
+        if instance.is_paid:  # ถ้ามีการจ่ายเงินเกิดขึ้น
             if type_payments == "deposit" and service.main_status == "payment":
                 service.main_status = "in_progress"
                 service.service_status = "host_is_waiting_to_receive_your_dog"
