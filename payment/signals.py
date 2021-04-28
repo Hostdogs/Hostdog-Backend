@@ -36,12 +36,10 @@ def create_payment_post_save(sender,instance,created,**kwargs):
                 total_price+=host_service_price[i]
 
         Payments.objects.create(service=instance,pay_total=total_price,type_payments='deposit')
-        instance.created_deposit_payment=True
         instance.save()
 
     elif instance.main_status=='late' and not instance.created_late_payment:
         Payments.objects.create(service=instance,pay_total=0,type_payments='late')
-        instance.created_late_payment=True
         instance.save()
 
     elif instance.main_status=='end' and not Payments.objects.get(service=instance).is_paid:
