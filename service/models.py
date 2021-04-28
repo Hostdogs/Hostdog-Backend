@@ -1,7 +1,12 @@
 from django.db import models
 from accounts.models import Host, Customer, Dog, HostAvailableDate
+from payment.models import Payments
 from django.db.models import Sum
-from notifications.tasks import send_email_customer_host_response_task
+from notifications.tasks import (
+    send_email_customer_host_response_task,
+    send_email_host_service_cancelled_task,
+    send_email_host_service_review_task
+)
 
 
 class Meal(models.Model):
@@ -42,10 +47,8 @@ class HostService(models.Model):
     enable_get_dog = models.BooleanField(default=True)
     enable_delivery_dog = models.BooleanField(default=True)
     enable_bath_dog = models.BooleanField(default=True)
-    
-    available_meals = models.ManyToManyField(
-        Meal, related_name="available_meals"
-    )
+
+    available_meals = models.ManyToManyField(Meal, related_name="available_meals")
     deposit_price = models.IntegerField(default=300)
 
     def __str__(self):
@@ -58,7 +61,7 @@ class HostService(models.Model):
         )
 
 
-class Service(models.Model):
+class Services(models.Model):
     """
     Service model
         - store pending, end, in_progress service
@@ -125,9 +128,6 @@ class Service(models.Model):
             - service main_status change to wait_for_progress [x]
             - delete range of date that cutomer register from host's available date [x]
             - create post_save signal to notification application [x]
-            - if catch signal from payment
-                - change main_status to in_progress
-                - change status to time of service
         """
         # Host accept customer request
         if self.main_status == "pending":
@@ -138,7 +138,7 @@ class Service(models.Model):
                 self.customer.last_name,
                 self.host.first_name,
                 self.host.last_name,
-                True
+                True,
             )
             self.main_status = "wait_for_progress"
             date_range = (
@@ -156,8 +156,6 @@ class Service(models.Model):
         """
         If host decline the service
             - service main_status change to cancelled
-            TODO:
-            - create post_save signal to notification
         """
         if self.main_status == "pending":
             email = self.customer.account.email
@@ -167,7 +165,7 @@ class Service(models.Model):
                 self.customer.last_name,
                 self.host.first_name,
                 self.host.last_name,
-                False
+                False,
             )
             self.main_status = "cancelled"
             self.save()
@@ -178,9 +176,13 @@ class Service(models.Model):
         """
         Host สามารถรับหมาได้
         """
-        # TODO รับหมาได้เมื่อ Customer จ่าย Payment แล้ว
-        self.service_status = "caring_for_your_dog"
-        self.save()
+        # รับหมาได้เมื่อ Customer จ่าย Payment แล้ว
+        payment = Payments.objects.get(service=self, type_payments="deposit")
+        if payment.is_paid:
+            self.service_status = "caring_for_your_dog"
+            self.save()
+            return True
+        return False
 
     def customer_receive_dog(self):
         """
@@ -197,23 +199,39 @@ class Service(models.Model):
         """
         Host สามารถคืนหมาได้
         """
-        # TODO คืนหมาไม่ได้ถ้า Customer ยังไม่จ่ายค่าเลท
+        # คืนหมาไม่ได้ถ้า Customer ยังไม่จ่ายค่าเลท
+        # คืนหมาได้เมื่อ Customer กดรับหมาแล้ว
         if self.main_status == "in_progress" and self.is_customer_receive_dog:
             self.service_status = "service_success"
             self.main_status = "end"
             self.save()
             return True
+        elif self.main_status == "late":
+            late_payment = Payments.objects.get(service=self, type_payments="late")
+            if late_payment.is_paid:
+                self.main_status = "end"
+                self.service_status = "service_success"
+                self.save()
         return False
-
 
     def cancel(self):
         """
         Customer สามารถยกเลิกบริการได้
         """
-        #TODO ส่ง Email Notification ให้ Host
+        # ส่ง Email Notification ให้ Host
+        # ลบ Payment ที่ไม่ได้จ่ายทิ้ง
         if self.main_status != "late":
+            email = self.host.account.email
+            send_email_host_service_cancelled_task(
+                email,
+                self.customer.first_name,
+                self.customer.last_name,
+                self.host.first_name,
+                self.host.last_name
+            )
             self.main_status = "cancelled"
             self.service_status = "you_cancel_this_service"
+            Payments.objects.filter(service=self, is_paid=False).delete()
             self.save()
             return True
         return False
@@ -222,11 +240,20 @@ class Service(models.Model):
         """
         Customer สามารถรีวิวบริการได้
         """
-        # TODO แจ้งเตือน Host ถึงคะแนน Review
+        # แจ้งเตือน Host ถึงคะแนน Review
         if self.main_status == "end":
+            email = self.host.account.email
+            send_email_host_service_review_task(
+                email,
+                self.customer.first_name,
+                self.customer.last_name,
+                self.host.first_name,
+                self.host.last_name,
+                review_score
+            )
             self.is_review = True
             self.rating += review_score
-            service_that_rate = Service.objects.filter(host=self.host, is_review=True)
+            service_that_rate = self.objects.filter(host=self.host, is_review=True)
             self.host.host_rating += (
                 service_that_rate.aggregate(Sum("host_rating"))["host_rating__sum"]
                 / service_that_rate.count()

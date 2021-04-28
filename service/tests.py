@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from accounts.models import Customer, Dog, Host, Accounts, HostAvailableDate
-from service.models import HostService, Service, Meal
+from service.models import HostService, Services, Meal
 from rest_framework.test import APIClient, APITestCase
 from datetime import date
 from rest_framework import status
@@ -128,7 +128,7 @@ class API_Testing(APITestCase):
             gender="male",
         )
         self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price=150)
-        self.service = Service.objects.create(
+        self.service = Services.objects.create(
             customer=self.customer,
             host=self.host,
             dog=self.dog_001,
@@ -222,7 +222,7 @@ class ServiceViewSetTesting(APITestCase):
         self.client.force_authenticate(
             user=self.acc_cus_001, token=self.token_acc_cus_001
         )
-        url = reverse("service:service-list")
+        url = reverse("service:services-list")
         #1
         service_data = {
             "host": self.host.account.id,

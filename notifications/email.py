@@ -83,3 +83,50 @@ def send_email_customer_host_response(
         ],
     )
     return email.send(fail_silently=False)
+
+def send_email_host_service_cancelled(email, customer_first_name, customer_last_name, host_first_name, host_last_name):
+    """
+    4.) ส่งหา Host เมื่อ Customer ยกเลิก Service
+    """
+    context = {
+        "customer_first_name": customer_first_name,
+        "customer_last_name": customer_last_name,
+        "host_first_name": host_first_name,
+        "host_last_name": host_last_name,
+        "email": email,
+    }
+    email_subject = "Customer ได้ยกเลิกบริการของคุณแล้ว"
+    email_body = render_to_string("email_customer_host_accept.txt", context)
+    email = EmailMessage(
+        email_subject,
+        email_body,
+        settings.DEFAULT_FROM_EMAIL,
+        [
+            email,
+        ],
+    )
+    return email.send(fail_silently=False)
+
+def send_email_host_service_review(email, customer_first_name, customer_last_name, host_first_name, host_last_name, review):
+    """
+    5.) ส่งหา Host เมื่อได้รับ Review จาก Customer
+    """
+    context = {
+        "score": review,
+        "customer_first_name": customer_first_name,
+        "customer_last_name": customer_last_name,
+        "host_first_name": host_first_name,
+        "host_last_name": host_last_name,
+        "email": email,
+    }
+    email_subject = "Customer ได้ให้คะแนนการให้บริการของคุณ"
+    email_body = render_to_string("email_host_service_review.txt", context)
+    email = EmailMessage(
+        email_subject,
+        email_body,
+        settings.DEFAULT_FROM_EMAIL,
+        [
+            email,
+        ],
+    )
+    return email.send(fail_silently=False)

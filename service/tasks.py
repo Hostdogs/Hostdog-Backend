@@ -36,7 +36,6 @@ def check_wait_for_progress_service():
         end_date = service.service_end_time
         service.main_status = "payment"
         service.service_status = "time_of_service"
-        service.created_deposit_payment = True
         send_email_customer_service_reach_task(
             email,
             customer_first_name,
