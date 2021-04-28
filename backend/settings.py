@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     "service",
     "notifications",
     "django_celery_beat",
-    "django_celery_results"
+    "django_celery_results",
+    "payment",
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

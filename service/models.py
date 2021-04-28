@@ -41,7 +41,6 @@ class HostService(models.Model):
     available_meals = models.ManyToManyField(
         Meal, related_name="available_meals"
     )
-    late_price = models.IntegerField(default=20)
     deposit_price = models.IntegerField(default=300)
 
     def __str__(self):

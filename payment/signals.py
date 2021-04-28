@@ -1,6 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from service.models import Service,Payments,HostService
+from service.models import Service,HostService
+from payment.models import Payments
+from datetime import datetime, date
 
 @receiver(post_save,sender=Service)
 def create_payment_post_save(sender,instance,created,**kwargs):
@@ -11,16 +13,22 @@ def create_payment_post_save(sender,instance,created,**kwargs):
         print('if payment in post_save working')
 
         host_service_instance=instance.additional_service
-        total_price=instance.service.additional_service.deposit_price
+
+        days=(instance.service_end_time-instance.service_start_time).days
+
+        total_meal_price=instance.service_meal_per_day*instance.service_meal_type.meal_price*days
+
+        total_price=instance.service.additional_service.deposit_price+total_meal_price
+
         host_service_price=[host_service_instance.price_dog_walk,
                         host_service_instance.price_get_dog,
                         host_service_instance.price_deliver_dog,
                         host_service_instance.price_bath_dog ]
 
-        enable_service=[host_service_instance.enable_dog_walk:,
+        enable_service=[host_service_instance.enable_dog_walk,
                         host_service_instance.enable_get_dog,
                         host_service_instance.enable_delivery_dog,
-                        host_service_instance..enable_bath_dog
+                        host_service_instance.enable_bath_dog
                         ]
 
         for i in range(len(enable_service)):
@@ -31,15 +39,14 @@ def create_payment_post_save(sender,instance,created,**kwargs):
         instance.created_deposit_payment=True
         instance.save()
 
-    else if instance.main_status=='late' and not instance.created_late_payment:
-        Payments.objects.create(service=instance,pay_total=instance.additional_service.late_price,type_payments='late')
+    elif instance.main_status=='late' and not instance.created_late_payment:
+        Payments.objects.create(service=instance,pay_total=0,type_payments='late')
         instance.created_late_payment=True
         instance.save()
 
-    else if instance.main_status=='end' and not Payments.objects.get(service=instance).is_paid:
+    elif instance.main_status=='end' and not Payments.objects.get(service=instance).is_paid:
         Payments.objects.get(service=instance).is_paid=True
         Payments.objects.get(service=instance).save()
-
     
 
 
