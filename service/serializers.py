@@ -135,6 +135,11 @@ class ServiceDetailSerializer(ServiceSerializer):
             "is_get_dog",
             "is_delivery_dog",
             "is_bath_dog",
+            "days_late",
+            "is_review",
+            "is_customer_receive_dog",
+            "created_deposit_payment",
+            "created_late_payment",
             "main_status",
         ]
 
