@@ -14,6 +14,7 @@ class Meal(models.Model):
 
     meal_type = models.CharField(max_length=50)
     meal_price = models.FloatField()
+   
 
     def __str__(self):
         return f"Meals : {self.meal_type}\nPrice : {self.meal_price} Baht"

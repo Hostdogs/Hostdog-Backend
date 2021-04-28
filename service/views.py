@@ -153,32 +153,45 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     http_method_names = ["get", "put", "patch", "head", "options"]
     
-    @action(methods=["post"],detail=True)
-    def add_meal(self,request,pk=None):
+    # def get_serializer_class(self):
+    #     serializer_class=self.serializer_class
+    #     parent_lookup=self.kwargs.get("add_meal")
+    #     if parent_lookup:
+    #         serializer_class=MealSerializer
+    #     else:
+    #         serializer_class=HostServiceSerializer
+    #     return serializer_class
 
-        serializer=MealSerializer(data=request.data)
+    # def get_serializer_class(self):
+    #     serializer_class = self.serializer_class
+    #     parent_lookup = self.kwargs.get("host_pk")
+    #     if parent_lookup:
+    #         serializer_class = HostAvailableDateWithNestedSerializer
+    #     else:
+    #         serializer_class = HostAvailableDateSerializer
+    #     return serializer_class
 
-        all_meal=Meal.objects.all()
+    # @action(methods=["put"],detail=True ,url_path="addmeal",url_name="add_meal")
+    # def add_meal(self,request,pk=None):
+    #     pass
+        # serializer=MealSerializer(data=request.data)
 
-        if serializer.is_valid():
+        # if serializer.is_valid():
 
-            service_meal_id=serializer.data.get("id")
-            meal=Meal.objects.get(id=service_meal_id)
+        #     service_meal_id=serializer.data.get("id")
 
-            if  service_meal_id in all_meal.meal_type:
+        #     meal=Meal.objects.get(id=service_meal_type)
 
-                host_service=self.get_object()
-                host_service.available_meals.clear()
-                host_service.available_meals.add(serializer)
-                host_service.save()
+        #     host_service=self.get_object()
+        #     host_service.available_meals.clear()
+        #     host_service.available_meals.add(meal)
+        #     host_service.save()
                 
-                return Response(
-                    {"status": "success", "message": "add Meal Completed"},
-                    status=status.HTTP_200_OK,)
-            else:
-                return "This Meal is not in list"
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        #     return Response(
+        #             {"status": "success", "message": "add Meal Completed"},
+        #             status=status.HTTP_200_OK,)
+        # else:
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

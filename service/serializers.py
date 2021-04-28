@@ -159,14 +159,14 @@ class MealSerializer(serializers.ModelSerializer):
             "meal_type",
             "meal_price",
         ]
-    
+        read_only_fields=["meal_price"]
 
 
 class HostServiceSerializer(serializers.ModelSerializer):
+    available_meals= MealSerializer(many=True,read_only=True)
     class Meta:
         model = HostService
         fields = [
-            "id",
             "host",
             "price_dog_walk",
             "price_get_dog",
