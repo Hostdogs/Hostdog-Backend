@@ -150,4 +150,34 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [IsOwnerAndHost & IsAuthenticated]
     queryset = HostService.objects.all()
     serializer_class = HostServiceSerializer
+
     http_method_names = ["get", "put", "patch", "head", "options"]
+    
+    @action(methods=["post"],detail=True)
+    def add_meal(self,request,pk=None):
+        serializer=MealSerializer(data=request.data)
+        all_meal=Meal.objects.all()
+
+        if serializer.is_valid():
+
+            service_meal_id=serializer.data.get("id")
+
+            if  service_meal_id in all_meal.meal_type:
+
+                host_service=self.get_object()
+                host_service.available_meals.clear()
+                host_service.available_meals.add(serializer)
+                host_service.save()
+                return Response(
+                    {"status": "success", "message": "add Meal Completed"},
+                    status=status.HTTP_200_OK,)
+            else:
+                return "This Meal is not in list"
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+    
+

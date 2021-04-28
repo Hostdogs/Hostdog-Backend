@@ -5,16 +5,16 @@ class Payments(models.Model):
     TYPE_PAYMENT=(('deposit','Deposit'),('late','Late'))
 
     service=models.ForeignKey(
-        Service,on_delete=models.CASCADE, related_name="service-payments"
+        Service,on_delete=models.CASCADE, related_name="servicepayments"
     )
 
-    is_paid=models.BooleanField(default=false)
+    is_paid=models.BooleanField(default=False)
 
     pay_date=models.DateTimeField(blank=True)
     
     pay_total=models.FloatField()
 
-    type_payments=models.CharField(choices=TYPE_PAYMENT)
+    type_payments=models.CharField(choices=TYPE_PAYMENT,max_length=20)
 
 
 

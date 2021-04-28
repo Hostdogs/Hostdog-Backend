@@ -11,8 +11,15 @@ router = DefaultRouter()
 /api/service/.../
 """
 router.register("services", ServiceViewSet)
+
+
 router.register("meals", MealViewSet)
 
 
+
+
+
+
 urlpatterns = router.urls
+
 print(f"URL patterns size at service : {len(urlpatterns)}")

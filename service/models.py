@@ -42,8 +42,10 @@ class HostService(models.Model):
     enable_get_dog = models.BooleanField(default=True)
     enable_delivery_dog = models.BooleanField(default=True)
     enable_bath_dog = models.BooleanField(default=True)
-    available_meals = models.ManyToManyField(Meal, related_name="available_meals")
-    late_price = models.IntegerField(default=20)
+    
+    available_meals = models.ManyToManyField(
+        Meal, related_name="available_meals"
+    )
     deposit_price = models.IntegerField(default=300)
 
     def __str__(self):

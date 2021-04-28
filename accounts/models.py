@@ -17,7 +17,7 @@ class Accounts(AbstractUser):
     """
 
     is_host = models.BooleanField(default=False)
-    account_number=models.CharField(max_length=20)
+    account_number=models.CharField(max_length=20,blank=True)
     first_name = None
     last_name = None
 

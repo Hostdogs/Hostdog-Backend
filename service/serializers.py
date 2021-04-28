@@ -155,15 +155,18 @@ class MealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meal
         fields = [
+            "id",
             "meal_type",
             "meal_price",
         ]
+    
 
 
 class HostServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = HostService
         fields = [
+            "id",
             "host",
             "price_dog_walk",
             "price_get_dog",
@@ -173,4 +176,7 @@ class HostServiceSerializer(serializers.ModelSerializer):
             "enable_get_dog",
             "enable_delivery_dog",
             "enable_bath_dog",
+            "available_meals",
+            "deposit_price"
+
         ]
