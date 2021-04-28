@@ -7,7 +7,7 @@ from service.serializers import (
     MealSerializer,
     HostServiceSerializer,
 )
-from service.models import Service, Meal, HostService
+from service.models import Services, Meal, HostService
 from rest_framework import generics, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, BasePermission
@@ -53,7 +53,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [IsAssociatedTo & IsAuthenticated]
-    queryset = Service.objects.all()
+    queryset = Services.objects.all()
     serializer_class = ServiceSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["main_status"]

@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
-from service.models import Service
+from service.models import Services
 from django.dispatch import receiver
 
-@receiver(post_save, sender=Service)
+@receiver(post_save, sender=Services)
 def create_notification(sender, instance, created, **kwargs):
     """
     Callback function for create notification after service is created as pending service

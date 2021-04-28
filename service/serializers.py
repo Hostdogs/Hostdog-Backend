@@ -1,6 +1,6 @@
 from accounts.models import Customer, HostAvailableDate
 from rest_framework import serializers
-from service.models import Service, Meal, HostService
+from service.models import Services, Meal, HostService
 from django.utils.timezone import localtime, timedelta
 
 
@@ -11,7 +11,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Service
+        model = Services
         fields = [
             "id",
             "host",
@@ -32,7 +32,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         customer = Customer.objects.get(account=self.context["request"].user)
         additional_service = HostService.objects.get(host=validated_data["host"])
-        service = Service.objects.create(
+        service = Services.objects.create(
             customer=customer, additional_service=additional_service, **validated_data
         )
         return service
@@ -135,6 +135,11 @@ class ServiceDetailSerializer(ServiceSerializer):
             "is_get_dog",
             "is_delivery_dog",
             "is_bath_dog",
+            "days_late",
+            "is_review",
+            "is_customer_receive_dog",
+            "created_deposit_payment",
+            "created_late_payment",
             "main_status",
         ]
 

@@ -1,6 +1,6 @@
 from django.db import models
 from accounts.models import Customer, Host
-from service.models import Service
+from service.models import Services
 
 # Create your models here.
 
@@ -20,7 +20,7 @@ class Notifications(models.Model):
     )
     host = models.ForeignKey(Host, on_delete=models.CASCADE, related_name="notifications_host")
     service = models.ForeignKey(
-        Service, on_delete=models.CASCADE, related_name="notification_service"
+        Services, on_delete=models.CASCADE, related_name="notification_service"
     )
     message = models.CharField(max_length=255)
     read = models.BooleanField(default=False)

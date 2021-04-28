@@ -1,6 +1,6 @@
 from celery.decorators import task
 from datetime import datetime, date
-from payment import Payments
+from payment.models import Payments
 from service.models import HostService
 from accounts.models import DogFeedingTime
 

@@ -1,11 +1,11 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from service.models import Service,HostService
+from service.models import Services,HostService
 from payment.models import Payments
 from datetime import datetime, date
 from accounts.models import DogFeedingTime
 
-@receiver(post_save,sender=Service)
+@receiver(post_save,sender=Services)
 def create_payment_post_save(sender,instance,created,**kwargs):
 
     print('post_save working')
