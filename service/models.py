@@ -19,7 +19,7 @@ class Meal(models.Model):
     """
 
     meal_type = models.CharField(max_length=50)
-    meal_price = models.FloatField()
+    meal_price_per_gram = models.FloatField()
    
 
     def __str__(self):
@@ -69,7 +69,7 @@ class Services(models.Model):
         - store pending, end, in_progress service
         - !!! IMPORTANT !!! This model store all of service in hostdog system (Pending service, Payment, End service and In progress service)
     """
-
+    
     MAIN_STATUS = (
         ("pending", "Pending"),
         ("payment", "Payment"),
@@ -110,7 +110,7 @@ class Services(models.Model):
     is_get_dog = models.BooleanField(default=False)
     is_delivery_dog = models.BooleanField(default=False)
     is_bath_dog = models.BooleanField(default=False)
-    additional_service = models.OneToOneField(
+    additional_service = models.ForeignKey(
         HostService, on_delete=models.CASCADE, related_name="additional_service"
     )
     service_bio = models.TextField(max_length=255, default="")
@@ -119,6 +119,7 @@ class Services(models.Model):
     days_late = models.IntegerField(default=0)
     is_review = models.BooleanField(default=False)
     is_customer_receive_dog = models.BooleanField(default=False)
+    rating=models.IntegerField(null=True)
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
@@ -256,12 +257,17 @@ class Services(models.Model):
                 review_score
             )
             self.is_review = True
+            if self.rating is None:
+                print("asjdkfhalsdhflahdlasdjghladghjlajkfdgkasdhglaksdjghasdg")
+                self.rating=0
             self.rating += review_score
-            service_that_rate = self.objects.filter(host=self.host, is_review=True)
-            self.host.host_rating += (
-                service_that_rate.aggregate(Sum("host_rating"))["host_rating__sum"]
-                / service_that_rate.count()
-            )
+            service_that_rate = Services.objects.filter(host=self.host, is_review=True,rating__isnull=False)
+            print("service_that_rate",service_that_rate)
+            other_rating=0
+            if service_that_rate.count() >0:
+                other_rating=service_that_rate.aggregate(Sum("rating"))["rating__sum"]
+
+            self.host.host_rating += (other_rating+self.rating)/(service_that_rate.count()+1)
             self.save()
             self.host.save()
             return True
@@ -273,5 +279,6 @@ class Services(models.Model):
             + "Customer : {self.customer}\n"
             + "Dog : {self.dog}\n"
             + "Status : {self.service_status}\n"
-            + "Main status : {self.main_status}"
+            + "Main status : {self.main_status}\n"
+            + "Additional service : {self.additional_service}"
         )

@@ -12,7 +12,7 @@ from rest_framework import generics, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.decorators import action
-
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 class IsOwnerAndHost(BasePermission):
     """
@@ -46,7 +46,7 @@ class IsAssociatedTo(BasePermission):
         )
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
     """
     API endpoint for managing service
         - Customer request service to Host (POST) --> notification to host
@@ -82,6 +82,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
             review = serializer.data.get("review")
             return_dog = serializer.data.get("return_dog")
             receive_dog = serializer.data.get("receive_dog")
+            print("receive_dog",receive_dog)
             if user.is_host: # Host
                 if service.main_status == "pending": # Accept/Decline
                     if accept:
@@ -106,14 +107,14 @@ class ServiceViewSet(viewsets.ModelViewSet):
                         status_code = status.HTTP_200_OK if return_dog_success else status.HTTP_400_BAD_REQUEST
                         return Response(response_data, status=status_code)
             else: # Customer
-                if service.main_status != "late": #ยกเลิกบริการ
-                    if cancel:
-                        cancel_success = service.cancel()
-                        response_data = {"success": "Service cancelled"} if cancel_success else {"fail": "Can't cancel service"}
-                        status_code = status.HTTP_200_OK if cancel_success else status.HTTP_400_BAD_REQUEST
-                        return Response(response_data, status=status_code)
+                if service.main_status != "late" and cancel: #ยกเลิกบริการ
+                    cancel_success = service.cancel()
+                    response_data = {"success": "Service cancelled"} if cancel_success else {"fail": "Can't cancel service"}
+                    status_code = status.HTTP_200_OK if cancel_success else status.HTTP_400_BAD_REQUEST
+                    return Response(response_data, status=status_code)
                 elif service.main_status == "in_progress":  # กดรับหมา
                     if receive_dog:
+                        print("kuy pat")
                         customer_receive_dog_success = service.customer_receive_dog()
                         response_data = {"success": "Customer receive dog success"} if customer_receive_dog_success else {"fail": "Customer fail to receive dog"}
                         status_code = status.HTTP_200_OK if customer_receive_dog_success else status.HTTP_400_BAD_REQUEST
