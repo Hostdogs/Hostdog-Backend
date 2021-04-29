@@ -6,7 +6,7 @@ from django.db.models import Sum
 from notifications.tasks import (
     send_email_customer_host_response_task,
     send_email_host_service_cancelled_task,
-    send_email_host_service_review_task
+    send_email_host_service_review_task,
 )
 
 
@@ -20,10 +20,9 @@ class Meal(models.Model):
 
     meal_type = models.CharField(max_length=50)
     meal_price_per_gram = models.FloatField()
-   
 
     def __str__(self):
-        return f"Meals : {self.meal_type}\nPrice : {self.meal_price} Baht"
+        return f"Meals : {self.meal_type}\nPrice : {self.meal_price_per_gram} Baht"
 
 
 class HostService(models.Model):
@@ -69,7 +68,7 @@ class Services(models.Model):
         - store pending, end, in_progress service
         - !!! IMPORTANT !!! This model store all of service in hostdog system (Pending service, Payment, End service and In progress service)
     """
-    
+
     MAIN_STATUS = (
         ("pending", "Pending"),
         ("payment", "Payment"),
@@ -102,9 +101,8 @@ class Services(models.Model):
     service_send_time = models.DateTimeField(blank=True, null=True)
     service_get_time = models.DateTimeField(blank=True, null=True)
     service_meal_type = models.ForeignKey(
-        Meal, on_delete=models.CASCADE, related_name="service_service_meal_type"
+        Meal, on_delete=models.PROTECT, related_name="service_service_meal_type"
     )
-    service_meal_per_day = models.IntegerField()
     service_meal_weight = models.IntegerField()
     is_dog_walk = models.BooleanField(default=False)
     is_get_dog = models.BooleanField(default=False)
@@ -119,7 +117,7 @@ class Services(models.Model):
     days_late = models.IntegerField(default=0)
     is_review = models.BooleanField(default=False)
     is_customer_receive_dog = models.BooleanField(default=False)
-    rating=models.IntegerField(null=True)
+    rating = models.IntegerField(null=True)
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
@@ -147,9 +145,9 @@ class Services(models.Model):
                 localtime(self.service_start_time).date(),
                 localtime(self.service_end_time).date(),
             )
-            print('self.service_start_time:',self.service_start_time)
-            print('self.service_end_time:',self.service_end_time)
-            print('date_range:',date_range)
+            print("self.service_start_time:", self.service_start_time)
+            print("self.service_end_time:", self.service_end_time)
+            print("date_range:", date_range)
             HostAvailableDate.objects.filter(
                 host=self.host, date__range=date_range
             ).delete()
@@ -209,8 +207,8 @@ class Services(models.Model):
         if self.main_status == "in_progress" and self.is_customer_receive_dog:
             self.service_status = "service_success"
             self.main_status = "end"
-            self.host.host_hosted_count+=1
-            self.customer.customer_hosted_count+=1
+            self.host.host_hosted_count += 1
+            self.customer.customer_hosted_count += 1
             self.customer.save()
             self.host.save()
             self.save()
@@ -220,8 +218,8 @@ class Services(models.Model):
             if late_payment.is_paid:
                 self.main_status = "end"
                 self.service_status = "service_success"
-                self.host.host_hosted_count+=1
-                self.customer.customer_hosted_count+=1
+                self.host.host_hosted_count += 1
+                self.customer.customer_hosted_count += 1
                 self.customer.save()
                 self.host.save()
                 self.save()
@@ -240,7 +238,7 @@ class Services(models.Model):
                 self.customer.first_name,
                 self.customer.last_name,
                 self.host.first_name,
-                self.host.last_name
+                self.host.last_name,
             )
             self.main_status = "cancelled"
             self.service_status = "you_cancel_this_service"
@@ -262,20 +260,24 @@ class Services(models.Model):
                 self.customer.last_name,
                 self.host.first_name,
                 self.host.last_name,
-                review_score
+                review_score,
             )
             self.is_review = True
             if self.rating is None:
                 print("asjdkfhalsdhflahdlasdjghladghjlajkfdgkasdhglaksdjghasdg")
-                self.rating=0
+                self.rating = 0
             self.rating += review_score
-            service_that_rate = Services.objects.filter(host=self.host, is_review=True,rating__isnull=False)
-            print("service_that_rate",service_that_rate)
-            other_rating=0
-            if service_that_rate.count() >0:
-                other_rating=service_that_rate.aggregate(Sum("rating"))["rating__sum"]
+            service_that_rate = Services.objects.filter(
+                host=self.host, is_review=True, rating__isnull=False
+            )
+            print("service_that_rate", service_that_rate)
+            other_rating = 0
+            if service_that_rate.count() > 0:
+                other_rating = service_that_rate.aggregate(Sum("rating"))["rating__sum"]
 
-            self.host.host_rating = (other_rating+self.rating)/(service_that_rate.count()+1)
+            self.host.host_rating = (other_rating + self.rating) / (
+                service_that_rate.count() + 1
+            )
             self.save()
             self.host.save()
             return True

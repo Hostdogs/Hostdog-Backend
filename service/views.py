@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from service.serializers import (
+    AddMealSerializer,
     ServiceDetailSerializer,
     ServiceResponseSerializer,
     ServiceSerializer,
@@ -8,7 +9,7 @@ from service.serializers import (
     HostServiceSerializer,
 )
 from service.models import Services, Meal, HostService
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, serializers, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.decorators import action
@@ -129,7 +130,7 @@ class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MealViewSet(viewsets.ModelViewSet):
+class MealViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for managing meal of service
     """
@@ -138,7 +139,32 @@ class MealViewSet(viewsets.ModelViewSet):
     queryset = Meal.objects.all()
     serializer_class = MealSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["meal_type", "meal_price"]
+    filterset_fields = ["meal_type", "meal_price_per_gram"]
+
+    def create(self, request, *args, **kwargs):
+        host_service_pk = self.kwargs.get("host_service_pk")
+        host_service = HostService.objects.get(host=host_service_pk)
+        serializer = AddMealSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        meal_id = serializer.data.get("meal")
+        host_service.available_meals.add(Meal.objects.get(id=meal_id))
+        host_service.save()
+        return Response({"success": "Add meal success"}, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        host_service_pk = self.kwargs.get("host_service_pk")
+        meal_pk = self.kwargs.get("pk")
+        host_service = HostService.objects.get(host=host_service_pk)
+        host_service.available_meals.remove(Meal.objects.get(id=meal_pk))
+        host_service.save()
+        return Response({"success": "Remove meal success"}, status=status.HTTP_204_NO_CONTENT)
+
+    def get_queryset(self):
+        host_service_pk = self.kwargs.get("host_service_pk")
+        queryset = Meal.objects.all()
+        if host_service_pk:
+            queryset = Meal.objects.filter(available_meals=host_service_pk)
+        return queryset
 
 
 class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

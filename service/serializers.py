@@ -1,4 +1,5 @@
-from accounts.models import Customer, HostAvailableDate
+from re import T
+from accounts.models import Customer, Host, HostAvailableDate
 from rest_framework import serializers
 from service.models import Services, Meal, HostService
 from django.utils.timezone import localtime, timedelta
@@ -20,7 +21,6 @@ class ServiceSerializer(serializers.ModelSerializer):
             "service_start_time",
             "service_end_time",
             "service_meal_type",
-            "service_meal_per_day",
             "service_meal_weight",
             "is_dog_walk",
             "is_get_dog",
@@ -37,6 +37,10 @@ class ServiceSerializer(serializers.ModelSerializer):
         )
         return service
     
+    def validate_service_meal_type(self, value):
+        return value
+
+
     def validate_service_start_time(self, value):
         if value < localtime():
             raise serializers.ValidationError("Do you have a time machine?")
@@ -59,6 +63,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         is_delivery_dog = attrs["is_delivery_dog"]
         is_bath_dog = attrs["is_bath_dog"]
         host = attrs["host"]
+        service_meal_type = attrs["service_meal_type"]
         service_start_time = attrs["service_start_time"]
         service_end_time = attrs["service_end_time"]
         service_delta = service_end_time.date() - service_start_time.date()
@@ -101,6 +106,12 @@ class ServiceSerializer(serializers.ModelSerializer):
                         "service_end_time": ["Bad value : Date range error"],
                     }
                 )
+
+        meal_that_host_have = host_service.available_meals.all()
+        if service_meal_type not in meal_that_host_have:
+            raise serializers.ValidationError(
+                {"service_meal_type": ["Bad value : Host doesn't have this meal"]}
+            )
         return super().validate(attrs)
 
 
@@ -162,9 +173,15 @@ class MealSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "meal_type",
-            "meal_price",
+            "meal_price_per_gram",
         ]
-        read_only_fields=["meal_price"]
+        read_only_fields=["meal_type", "meal_price_per_gram"]
+
+class AddMealSerializer(serializers.Serializer):
+    """
+    Serializer สำหรับส่ง meal id
+    """
+    meal = serializers.IntegerField(required=False)
 
 
 class HostServiceSerializer(serializers.ModelSerializer):

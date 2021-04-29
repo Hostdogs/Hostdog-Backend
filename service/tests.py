@@ -86,17 +86,17 @@ class Model_Testing(TestCase):
             longitude=10,
         )
 
-        self.meal_001 = Meal.objects.create(meal_type="meal_type", meal_price=24.132)
+        self.meal_001 = Meal.objects.create(meal_type="meal_type", meal_price_per_gram=24.132)
 
     def test_meal(self):
         meal = Meal.objects.get(id=self.meal_001.id)
         meal_type = f"{meal.meal_type}"
-        meal_price = meal.meal_price
+        meal_price_per_gram = meal.meal_price_per_gram
 
         word = str(meal)
         self.assertEqual(word, str(meal))
         self.assertEqual(meal_type, "meal_type")
-        self.assertEqual(meal_price, 24.132)
+        self.assertEqual(meal_price_per_gram, 24.132)
 
 
 class API_Testing(APITestCase):
@@ -127,7 +127,7 @@ class API_Testing(APITestCase):
             dog_breed="USA",
             gender="male",
         )
-        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price=150)
+        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price_per_gram=150)
         self.service = Services.objects.create(
             customer=self.customer,
             host=self.host,
@@ -204,7 +204,7 @@ class ServiceViewSetTesting(APITestCase):
             gender="male",
         )
 
-        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price=150)
+        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price_per_gram=150)
 
         for day in range(2):
             self.host_001_available_date = HostAvailableDate.objects.create(
