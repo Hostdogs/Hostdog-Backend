@@ -209,6 +209,10 @@ class Services(models.Model):
         if self.main_status == "in_progress" and self.is_customer_receive_dog:
             self.service_status = "service_success"
             self.main_status = "end"
+            self.host.host_hosted_count+=1
+            self.customer.customer_hosted_count+=1
+            self.customer.save()
+            self.host.save()
             self.save()
             return True
         elif self.main_status == "late":
@@ -216,6 +220,10 @@ class Services(models.Model):
             if late_payment.is_paid:
                 self.main_status = "end"
                 self.service_status = "service_success"
+                self.host.host_hosted_count+=1
+                self.customer.customer_hosted_count+=1
+                self.customer.save()
+                self.host.save()
                 self.save()
         return False
 
@@ -267,7 +275,7 @@ class Services(models.Model):
             if service_that_rate.count() >0:
                 other_rating=service_that_rate.aggregate(Sum("rating"))["rating__sum"]
 
-            self.host.host_rating += (other_rating+self.rating)/(service_that_rate.count()+1)
+            self.host.host_rating = (other_rating+self.rating)/(service_that_rate.count()+1)
             self.save()
             self.host.save()
             return True
