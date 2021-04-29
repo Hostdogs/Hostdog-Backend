@@ -12,7 +12,7 @@ from rest_framework import generics, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.decorators import action
-
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 class IsOwnerAndHost(BasePermission):
     """
@@ -46,7 +46,7 @@ class IsAssociatedTo(BasePermission):
         )
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
     """
     API endpoint for managing service
         - Customer request service to Host (POST) --> notification to host
@@ -60,10 +60,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        if self.action == "create":
+        if self.action == "response":
+            serializer_class = ServiceResponseSerializer 
+        elif self.action == "create":
             serializer_class = ServiceSerializer
-        elif self.action == "response":
-            serializer_class = ServiceResponseSerializer
         else:
             serializer_class = ServiceDetailSerializer
         return serializer_class
@@ -75,16 +75,17 @@ class ServiceViewSet(viewsets.ModelViewSet):
         """
         service = self.get_object()
         user = self.request.user
-        serializer = self.serializer_class(data=request.data)
+        serializer = ServiceResponseSerializer(data=request.data)
         if serializer.is_valid():
-            response = serializer.data.get("response")
+            accept = serializer.data.get("accept")
             cancel = serializer.data.get("cancel")
             review = serializer.data.get("review")
             return_dog = serializer.data.get("return_dog")
             receive_dog = serializer.data.get("receive_dog")
+            print("receive_dog",receive_dog)
             if user.is_host: # Host
                 if service.main_status == "pending": # Accept/Decline
-                    if response:
+                    if accept:
                         service.accept()
                         return Response(
                             {"success": "Service accepted"}, status=status.HTTP_200_OK
@@ -106,14 +107,14 @@ class ServiceViewSet(viewsets.ModelViewSet):
                         status_code = status.HTTP_200_OK if return_dog_success else status.HTTP_400_BAD_REQUEST
                         return Response(response_data, status=status_code)
             else: # Customer
-                if service.main_status != "late": #ยกเลิกบริการ
-                    if cancel:
-                        cancel_success = service.cancel()
-                        response_data = {"success": "Service cancelled"} if cancel_success else {"fail": "Can't cancel service"}
-                        status_code = status.HTTP_200_OK if cancel_success else status.HTTP_400_BAD_REQUEST
-                        return Response(response_data, status=status_code)
+                if service.main_status != "late" and cancel: #ยกเลิกบริการ
+                    cancel_success = service.cancel()
+                    response_data = {"success": "Service cancelled"} if cancel_success else {"fail": "Can't cancel service"}
+                    status_code = status.HTTP_200_OK if cancel_success else status.HTTP_400_BAD_REQUEST
+                    return Response(response_data, status=status_code)
                 elif service.main_status == "in_progress":  # กดรับหมา
                     if receive_dog:
+                        print("kuy pat")
                         customer_receive_dog_success = service.customer_receive_dog()
                         response_data = {"success": "Customer receive dog success"} if customer_receive_dog_success else {"fail": "Customer fail to receive dog"}
                         status_code = status.HTTP_200_OK if customer_receive_dog_success else status.HTTP_400_BAD_REQUEST
@@ -153,32 +154,45 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     http_method_names = ["get", "put", "patch", "head", "options"]
     
-    @action(methods=["post"],detail=True)
-    def add_meal(self,request,pk=None):
+    # def get_serializer_class(self):
+    #     serializer_class=self.serializer_class
+    #     parent_lookup=self.kwargs.get("add_meal")
+    #     if parent_lookup:
+    #         serializer_class=MealSerializer
+    #     else:
+    #         serializer_class=HostServiceSerializer
+    #     return serializer_class
 
-        serializer=MealSerializer(data=request.data)
+    # def get_serializer_class(self):
+    #     serializer_class = self.serializer_class
+    #     parent_lookup = self.kwargs.get("host_pk")
+    #     if parent_lookup:
+    #         serializer_class = HostAvailableDateWithNestedSerializer
+    #     else:
+    #         serializer_class = HostAvailableDateSerializer
+    #     return serializer_class
 
-        all_meal=Meal.objects.all()
+    # @action(methods=["put"],detail=True ,url_path="addmeal",url_name="add_meal")
+    # def add_meal(self,request,pk=None):
+    #     pass
+        # serializer=MealSerializer(data=request.data)
 
-        if serializer.is_valid():
+        # if serializer.is_valid():
 
-            service_meal_id=serializer.data.get("id")
-            meal=Meal.objects.get(id=service_meal_id)
+        #     service_meal_id=serializer.data.get("id")
 
-            if  service_meal_id in all_meal.meal_type:
+        #     meal=Meal.objects.get(id=service_meal_type)
 
-                host_service=self.get_object()
-                host_service.available_meals.clear()
-                host_service.available_meals.add(serializer)
-                host_service.save()
+        #     host_service=self.get_object()
+        #     host_service.available_meals.clear()
+        #     host_service.available_meals.add(meal)
+        #     host_service.save()
                 
-                return Response(
-                    {"status": "success", "message": "add Meal Completed"},
-                    status=status.HTTP_200_OK,)
-            else:
-                return "This Meal is not in list"
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        #     return Response(
+        #             {"status": "success", "message": "add Meal Completed"},
+        #             status=status.HTTP_200_OK,)
+        # else:
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

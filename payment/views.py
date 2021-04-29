@@ -5,25 +5,39 @@ from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework_extensions.mixins import NestedViewSetMixin
 # Create your views here.
-class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
     queryset=Payments.objects.all()
     serializer_class=PaymentSerializer
-    http_method_names = ["get","head","options"]
+    http_method_names = ["post","get","head","options"]
 
-    @action(method=["post"],detail=True)
-    def pay(self,request,pk=None):
+    @action(methods=["post"],detail=True, url_path="paydeposit", url_name="paydeposit")
+    def pay_deposit(self,request,pk=None,service_pk=None):
     #TO-DO: notification payment
+
         serializer=PaymentAcceptSerializer(data=request.data)
         if serializer.is_valid():
-            if serializer.data.get("accept_payment"):
-                payment=self.get_object()
-                payment.is_paid=True
-                payment.pay_date=timezone.now()
-                payment.save()
-                
-                return Response(
-                {"status": "success", "message": "Pay Accept Completed"},
+            payment=self.get_object()
+            payment.is_paid=True
+            payment.pay_date=timezone.now()
+            payment.save()
+            return Response(
+                {"status": "success", "message": "Pay Deposit Accept Completed"},
+                status=status.HTTP_200_OK,)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=["post"],detail=True, url_path="paylate", url_name="paylate")
+    def pay_late(self,request,pk=None):
+        serializer=PaymentAcceptSerializer(data=request.data)
+        if serializer.is_valid():
+            payment=self.get_object()
+            payment.is_paid=True
+            payment.pay_date=timezone.now()
+            payment.save()
+            return Response(
+                {"status": "success", "message": "Pay Deposit Accept Completed"},
                 status=status.HTTP_200_OK,)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

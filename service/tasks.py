@@ -1,5 +1,6 @@
 from celery.decorators import task
 from service.models import Services
+from payment.models import Payments
 from django.utils.timezone import localtime, timedelta
 from notifications.tasks import (
     send_email_customer_service_reach_task,
@@ -52,6 +53,7 @@ def check_wait_for_progress_service():
             start_date,
             end_date,
         )
+        # service.save(update_fields=["main_status","service_status"])
         service.save()
     # ตรงนี้คือหลังจาก ปรับ service ที่ wait_for_progress เป็น in_progress [x]
     # ส่งเมลล์เตือน Customer [x]
@@ -72,7 +74,7 @@ def check_in_progress_service_that_late():
     schedule : ทำการรัน Task นี้ทุก 1 นาที
     """
     in_progress_service_that_late = Services.objects.filter(
-        main_status="in_progress", service_end_time__lt=localtime() + timedelta(days=1)
+        main_status="in_progress", service_end_time__lt=localtime()-timedelta(days=1)
     )
     for service in in_progress_service_that_late:
         service.main_status = "late"
@@ -110,3 +112,15 @@ def notify_near_end_service(before_hour):
             service.service_end_time
         )
     return f"Service that near end : {service_that_near_end.count()}"
+
+@task(name="service_not_pay_in_service_time")
+def cancel_that_service():
+    service_objects=Services.objects.filter(main_status="payment")
+    
+    for service in service_objects:
+        payment=Payments.objects.get(service=service,type_payment=deposit)
+        if not payment.is_paid and localtime()-service.service_start_time > timedelta(hours=1)  :
+            service.main_status="cancelled"
+            service.service_status="you_cancel_this_service"
+            service.save()
+    return f"payment service: {service_objects}"

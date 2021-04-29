@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import Host, Customer, Dog, HostAvailableDate
 from payment.models import Payments
+from django.utils.timezone import localtime
 from django.db.models import Sum
 from notifications.tasks import (
     send_email_customer_host_response_task,
@@ -18,7 +19,8 @@ class Meal(models.Model):
     """
 
     meal_type = models.CharField(max_length=50)
-    meal_price = models.FloatField()
+    meal_price_per_gram = models.FloatField()
+   
 
     def __str__(self):
         return f"Meals : {self.meal_type}\nPrice : {self.meal_price} Baht"
@@ -67,7 +69,7 @@ class Services(models.Model):
         - store pending, end, in_progress service
         - !!! IMPORTANT !!! This model store all of service in hostdog system (Pending service, Payment, End service and In progress service)
     """
-
+    
     MAIN_STATUS = (
         ("pending", "Pending"),
         ("payment", "Payment"),
@@ -108,7 +110,7 @@ class Services(models.Model):
     is_get_dog = models.BooleanField(default=False)
     is_delivery_dog = models.BooleanField(default=False)
     is_bath_dog = models.BooleanField(default=False)
-    additional_service = models.OneToOneField(
+    additional_service = models.ForeignKey(
         HostService, on_delete=models.CASCADE, related_name="additional_service"
     )
     service_bio = models.TextField(max_length=255, default="")
@@ -117,11 +119,12 @@ class Services(models.Model):
     days_late = models.IntegerField(default=0)
     is_review = models.BooleanField(default=False)
     is_customer_receive_dog = models.BooleanField(default=False)
+    rating=models.IntegerField(null=True)
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
 
-    def accept(self, is_host):
+    def accept(self):
         """
         If host accept the service
             - service main_status change to wait_for_progress [x]
@@ -141,9 +144,12 @@ class Services(models.Model):
             )
             self.main_status = "wait_for_progress"
             date_range = (
-                self.service_start_time.date(),
-                self.service_end_time.date(),
+                localtime(self.service_start_time).date(),
+                localtime(self.service_end_time).date(),
             )
+            print('self.service_start_time:',self.service_start_time)
+            print('self.service_end_time:',self.service_end_time)
+            print('date_range:',date_range)
             HostAvailableDate.objects.filter(
                 host=self.host, date__range=date_range
             ).delete()
@@ -151,7 +157,7 @@ class Services(models.Model):
             return True
         return False
 
-    def decline(self, is_host):
+    def decline(self):
         """
         If host decline the service
             - service main_status change to cancelled
@@ -203,6 +209,10 @@ class Services(models.Model):
         if self.main_status == "in_progress" and self.is_customer_receive_dog:
             self.service_status = "service_success"
             self.main_status = "end"
+            self.host.host_hosted_count+=1
+            self.customer.customer_hosted_count+=1
+            self.customer.save()
+            self.host.save()
             self.save()
             return True
         elif self.main_status == "late":
@@ -210,6 +220,10 @@ class Services(models.Model):
             if late_payment.is_paid:
                 self.main_status = "end"
                 self.service_status = "service_success"
+                self.host.host_hosted_count+=1
+                self.customer.customer_hosted_count+=1
+                self.customer.save()
+                self.host.save()
                 self.save()
         return False
 
@@ -251,12 +265,17 @@ class Services(models.Model):
                 review_score
             )
             self.is_review = True
+            if self.rating is None:
+                print("asjdkfhalsdhflahdlasdjghladghjlajkfdgkasdhglaksdjghasdg")
+                self.rating=0
             self.rating += review_score
-            service_that_rate = self.objects.filter(host=self.host, is_review=True)
-            self.host.host_rating += (
-                service_that_rate.aggregate(Sum("host_rating"))["host_rating__sum"]
-                / service_that_rate.count()
-            )
+            service_that_rate = Services.objects.filter(host=self.host, is_review=True,rating__isnull=False)
+            print("service_that_rate",service_that_rate)
+            other_rating=0
+            if service_that_rate.count() >0:
+                other_rating=service_that_rate.aggregate(Sum("rating"))["rating__sum"]
+
+            self.host.host_rating = (other_rating+self.rating)/(service_that_rate.count()+1)
             self.save()
             self.host.save()
             return True
@@ -268,5 +287,6 @@ class Services(models.Model):
             + "Customer : {self.customer}\n"
             + "Dog : {self.dog}\n"
             + "Status : {self.service_status}\n"
-            + "Main status : {self.main_status}"
+            + "Main status : {self.main_status}\n"
+            + "Additional service : {self.additional_service}"
         )
