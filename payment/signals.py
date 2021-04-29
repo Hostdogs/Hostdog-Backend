@@ -13,15 +13,26 @@ def create_payment_post_save(sender,created,instance,update_fields,**kwargs):
     if  instance.main_status=="payment" and not instance.created_deposit_payment:
         print('if payment in post_save working')
         print("instance.additional_service:",instance.additional_service)
+        
         host_service_instance=instance.additional_service
      
         dog_feeding_time_object=DogFeedingTime.objects.filter(dog=instance.dog)
 
-        meals_per_day=dog_feeding_time_object.count()
+        meals_per_day_before_last_day=dog_feeding_time_object.count()
 
         days=(instance.service_end_time-instance.service_start_time).days
 
-        total_meal_price=meals_per_day*instance.service_meal_weight*instance.service_meal_type.meal_price_per_gram *days
+        meal_weight=instance.service_meal_weight
+
+        meal_price_per_gram=instance.service_meal_type.meal_price_per_gram
+
+        meal_price_before_last_day=meals_per_day_before_last_day*meal_weight*meal_price_per_gram*(days-1)
+        
+        meals_per_day_in_last_day=dog_feeding_time_object.filter(time__lt=instance.service_end_time.strftime("%H:%M:%S"))
+
+        meal_price_in_last_day=meals_per_day_in_last_day*meal_weight*meal_price_per_gram
+
+        total_meal_price=meal_price_before_last_day+meal_price_in_last_day
 
         total_price=host_service_instance.deposit_price+total_meal_price
 
