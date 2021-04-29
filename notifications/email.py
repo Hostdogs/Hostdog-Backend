@@ -32,7 +32,7 @@ def send_email_host_service(
 
 
 def send_email_customer_service_reach(
-    email, customer_first_name, customer_last_name, host_first_name, host_last_name, start_date, end_date
+    email, customer_first_name, customer_last_name, host_first_name, host_last_name, start_date, end_date,price
 ):
     """
     2.) ส่งหา Customer เมื่อถึงเวลาการให้บริการแล้ว
@@ -45,6 +45,7 @@ def send_email_customer_service_reach(
         "start_date": start_date,
         "end_date": end_date,
         "email": email,
+        "price":price
     }
     email_subject = "ถึงวันใช้บริการของคุณแล้ว"
     email_body = render_to_string("email_customer_service_reach.txt", context)
@@ -71,7 +72,7 @@ def send_email_customer_host_response(
         "customer_last_name": customer_last_name,
         "host_first_name": host_first_name,
         "host_last_name": host_last_name,
-        "email": email,
+        "email": email
     }
     email_subject = f"Host ได้{'ยืนยัน' if accept else 'ปฏิเสธ'}การบริการของคุณแล้ว"
     email_body = render_to_string("email_customer_host_accept.txt", context)
@@ -147,6 +148,31 @@ def send_email_customer_near_end_time(email, customer_first_name, customer_last_
     }
     email_subject = "ใกล้ถึงเวลาสิ้นสุดบริการของคุณแล้ว"
     email_body = render_to_string("email_customer_near_end_time.txt", context)
+    email = EmailMessage(
+        email_subject,
+        email_body,
+        settings.DEFAULT_FROM_EMAIL,
+        [
+            email,
+        ],
+    )
+    return email.send(fail_silently=False)
+def send_email_to_host_paid(
+    email, customer_first_name, customer_last_name, host_first_name, host_last_name,price
+):
+    """
+    7.) ส่งว่า Customer จ่ายเงินแล้วให้ Host
+    """
+    context = {
+        "customer_first_name": customer_first_name,
+        "customer_last_name": customer_last_name,
+        "host_first_name": host_first_name,
+        "host_last_name": host_last_name,
+        "email": email,
+        "price":price
+    }
+    email_subject = f"Customer ได้จ่ายเงินแล้ว"
+    email_body = render_to_string("send_email_to_host_paid.txt", context)
     email = EmailMessage(
         email_subject,
         email_body,

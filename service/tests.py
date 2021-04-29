@@ -231,7 +231,6 @@ class ServiceViewSetTesting(APITestCase):
             "service_start_time": localtime() + timedelta(hours=3),
             "service_end_time": localtime() + timedelta(days=1),
             "service_meal_type": self.meal_001.id,
-            "service_meal_per_day": 2,
             "service_meal_weight": 50,
             "is_dog_walk": True,
             "is_get_dog": True,
@@ -240,6 +239,7 @@ class ServiceViewSetTesting(APITestCase):
             "service_bio": "My first service yayyy",
         }
         service_response = self.client.post(url, service_data, format="json")
+        print(service_response.data)
         #2
         service_data_2 = {
             "host": self.host.account.id,
@@ -248,7 +248,6 @@ class ServiceViewSetTesting(APITestCase):
             "service_start_time": localtime() + timedelta(hours=3),
             "service_end_time": localtime() + timedelta(days=2),
             "service_meal_type": self.meal_001.id,
-            "service_meal_per_day": 2,
             "service_meal_weight": 50,
             "is_dog_walk": True,
             "is_get_dog": True,
@@ -265,7 +264,6 @@ class ServiceViewSetTesting(APITestCase):
             "service_start_time": datetime(2021, 1, 2),
             "service_end_time": datetime(2021, 1, 3),
             "service_meal_type": self.meal_001.id,
-            "service_meal_per_day": 2,
             "service_meal_weight": 50,
             "is_dog_walk": True,
             "is_get_dog": True,
