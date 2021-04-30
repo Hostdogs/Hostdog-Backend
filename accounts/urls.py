@@ -1,3 +1,4 @@
+from django.views.generic import base
 from accounts.views import (
     AuthToken,
     CustomerProfileViewSet,
@@ -10,7 +11,7 @@ from accounts.views import (
 )
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from service.views import HostServiceViewSet
+from service.views import HostServiceViewSet, MealViewSet
 from rest_framework_nested import routers
 
 app_name = "accounts"
@@ -42,6 +43,8 @@ host_service_router.register(
 host_service_router.register(
     r"available-date", HostAvailableDateViewSet, basename="profilehost-availabledate"
 )
+meals_router = routers.NestedDefaultRouter(host_service_router, r"host-service", lookup="host_service")
+meals_router.register(r"meals", MealViewSet, basename="host-service-meals")
 
 host_service_router.register(
     r"house-image", HostHouseImageViewSet, basename="profilehost-house-image"
@@ -73,4 +76,5 @@ urlpatterns += profile_customer_router.urls
 urlpatterns += host_service_router.urls
 urlpatterns += dogs_router.urls
 urlpatterns += feeding_time_router.urls
+urlpatterns += meals_router.urls
 print(f"URL pattern size  at accounts: {len(urlpatterns)}")

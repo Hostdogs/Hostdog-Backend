@@ -1,7 +1,13 @@
 from django.db import models
 from accounts.models import Host, Customer, Dog, HostAvailableDate
+from payment.models import Payments
+from django.utils.timezone import localtime
 from django.db.models import Sum
-from notifications.tasks import send_email_customer_host_response_task
+from notifications.tasks import (
+    send_email_customer_host_response_task,
+    send_email_host_service_cancelled_task,
+    send_email_host_service_review_task,
+)
 
 
 class Meal(models.Model):
@@ -13,10 +19,10 @@ class Meal(models.Model):
     """
 
     meal_type = models.CharField(max_length=50)
-    meal_price = models.FloatField()
+    meal_price_per_gram = models.FloatField()
 
     def __str__(self):
-        return f"Meals : {self.meal_type}\nPrice : {self.meal_price} Baht"
+        return f"Meals : {self.meal_type}\nPrice : {self.meal_price_per_gram} Baht"
 
 
 class HostService(models.Model):
@@ -38,27 +44,25 @@ class HostService(models.Model):
     price_deliver_dog = models.FloatField(default=0.0)
     price_bath_dog = models.FloatField(default=0.0)
 
-    enable_dog_walk = models.BooleanField(default=True)
-    enable_get_dog = models.BooleanField(default=True)
-    enable_delivery_dog = models.BooleanField(default=True)
-    enable_bath_dog = models.BooleanField(default=True)
-    
-    available_meals = models.ManyToManyField(
-        Meal, related_name="available_meals"
-    )
+    enable_dog_walk = models.BooleanField(default=False)
+    enable_get_dog = models.BooleanField(default=False)
+    enable_delivery_dog = models.BooleanField(default=False)
+    enable_bath_dog = models.BooleanField(default=False)
+
+    available_meals = models.ManyToManyField(Meal, related_name="available_meals")
     deposit_price = models.IntegerField(default=300)
 
     def __str__(self):
         return (
             f" Additional service of {self.host}\n"
-            + "1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n"
-            + "2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n"
-            + "3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n"
-            + "4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"
+            + f"1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n"
+            + f"2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n"
+            + f"3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n"
+            + f"4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"
         )
 
 
-class Service(models.Model):
+class Services(models.Model):
     """
     Service model
         - store pending, end, in_progress service
@@ -97,15 +101,14 @@ class Service(models.Model):
     service_send_time = models.DateTimeField(blank=True, null=True)
     service_get_time = models.DateTimeField(blank=True, null=True)
     service_meal_type = models.ForeignKey(
-        Meal, on_delete=models.CASCADE, related_name="service_service_meal_type"
+        Meal, on_delete=models.PROTECT, related_name="service_meal_type"
     )
-    service_meal_per_day = models.IntegerField()
     service_meal_weight = models.IntegerField()
     is_dog_walk = models.BooleanField(default=False)
     is_get_dog = models.BooleanField(default=False)
     is_delivery_dog = models.BooleanField(default=False)
     is_bath_dog = models.BooleanField(default=False)
-    additional_service = models.OneToOneField(
+    additional_service = models.ForeignKey(
         HostService, on_delete=models.CASCADE, related_name="additional_service"
     )
     service_bio = models.TextField(max_length=255, default="")
@@ -114,20 +117,17 @@ class Service(models.Model):
     days_late = models.IntegerField(default=0)
     is_review = models.BooleanField(default=False)
     is_customer_receive_dog = models.BooleanField(default=False)
+    rating = models.IntegerField(null=True)
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
 
-    def accept(self, is_host):
+    def accept(self):
         """
         If host accept the service
-        TODO:
             - service main_status change to wait_for_progress [x]
             - delete range of date that cutomer register from host's available date [x]
             - create post_save signal to notification application [x]
-            - if catch signal from payment
-                - change main_status to in_progress
-                - change status to time of service
         """
         # Host accept customer request
         if self.main_status == "pending":
@@ -138,13 +138,16 @@ class Service(models.Model):
                 self.customer.last_name,
                 self.host.first_name,
                 self.host.last_name,
-                True
+                True,
             )
             self.main_status = "wait_for_progress"
             date_range = (
-                self.service_start_time.date(),
-                self.service_end_time.date(),
+                localtime(self.service_start_time).date(),
+                localtime(self.service_end_time).date(),
             )
+            print("self.service_start_time:", self.service_start_time)
+            print("self.service_end_time:", self.service_end_time)
+            print("date_range:", date_range)
             HostAvailableDate.objects.filter(
                 host=self.host, date__range=date_range
             ).delete()
@@ -152,12 +155,10 @@ class Service(models.Model):
             return True
         return False
 
-    def decline(self, is_host):
+    def decline(self):
         """
         If host decline the service
             - service main_status change to cancelled
-            TODO:
-            - create post_save signal to notification
         """
         if self.main_status == "pending":
             email = self.customer.account.email
@@ -167,7 +168,7 @@ class Service(models.Model):
                 self.customer.last_name,
                 self.host.first_name,
                 self.host.last_name,
-                False
+                False,
             )
             self.main_status = "cancelled"
             self.save()
@@ -178,9 +179,13 @@ class Service(models.Model):
         """
         Host สามารถรับหมาได้
         """
-        # TODO รับหมาได้เมื่อ Customer จ่าย Payment แล้ว
-        self.service_status = "caring_for_your_dog"
-        self.save()
+        # รับหมาได้เมื่อ Customer จ่าย Payment แล้ว
+        payment = Payments.objects.get(service=self, type_payments="deposit")
+        if payment.is_paid:
+            self.service_status = "caring_for_your_dog"
+            self.save()
+            return True
+        return False
 
     def customer_receive_dog(self):
         """
@@ -197,23 +202,47 @@ class Service(models.Model):
         """
         Host สามารถคืนหมาได้
         """
-        # TODO คืนหมาไม่ได้ถ้า Customer ยังไม่จ่ายค่าเลท
+        # คืนหมาไม่ได้ถ้า Customer ยังไม่จ่ายค่าเลท
+        # คืนหมาได้เมื่อ Customer กดรับหมาแล้ว
         if self.main_status == "in_progress" and self.is_customer_receive_dog:
             self.service_status = "service_success"
             self.main_status = "end"
+            self.host.host_hosted_count += 1
+            self.customer.customer_hosted_count += 1
+            self.customer.save()
+            self.host.save()
             self.save()
             return True
+        elif self.main_status == "late":
+            late_payment = Payments.objects.get(service=self, type_payments="late")
+            if late_payment.is_paid:
+                self.main_status = "end"
+                self.service_status = "service_success"
+                self.host.host_hosted_count += 1
+                self.customer.customer_hosted_count += 1
+                self.customer.save()
+                self.host.save()
+                self.save()
         return False
-
 
     def cancel(self):
         """
         Customer สามารถยกเลิกบริการได้
         """
-        #TODO ส่ง Email Notification ให้ Host
+        # ส่ง Email Notification ให้ Host
+        # ลบ Payment ที่ไม่ได้จ่ายทิ้ง
         if self.main_status != "late":
+            email = self.host.account.email
+            send_email_host_service_cancelled_task(
+                email,
+                self.customer.first_name,
+                self.customer.last_name,
+                self.host.first_name,
+                self.host.last_name,
+            )
             self.main_status = "cancelled"
             self.service_status = "you_cancel_this_service"
+            Payments.objects.filter(service=self, is_paid=False).delete()
             self.save()
             return True
         return False
@@ -222,14 +251,32 @@ class Service(models.Model):
         """
         Customer สามารถรีวิวบริการได้
         """
-        # TODO แจ้งเตือน Host ถึงคะแนน Review
+        # แจ้งเตือน Host ถึงคะแนน Review
         if self.main_status == "end":
+            email = self.host.account.email
+            send_email_host_service_review_task(
+                email,
+                self.customer.first_name,
+                self.customer.last_name,
+                self.host.first_name,
+                self.host.last_name,
+                review_score,
+            )
             self.is_review = True
+            if self.rating is None:
+                print("asjdkfhalsdhflahdlasdjghladghjlajkfdgkasdhglaksdjghasdg")
+                self.rating = 0
             self.rating += review_score
-            service_that_rate = Service.objects.filter(host=self.host, is_review=True)
-            self.host.host_rating += (
-                service_that_rate.aggregate(Sum("host_rating"))["host_rating__sum"]
-                / service_that_rate.count()
+            service_that_rate = Services.objects.filter(
+                host=self.host, is_review=True, rating__isnull=False
+            )
+            print("service_that_rate", service_that_rate)
+            other_rating = 0
+            if service_that_rate.count() > 0:
+                other_rating = service_that_rate.aggregate(Sum("rating"))["rating__sum"]
+
+            self.host.host_rating = (other_rating + self.rating) / (
+                service_that_rate.count() + 1
             )
             self.save()
             self.host.save()
@@ -242,5 +289,6 @@ class Service(models.Model):
             + "Customer : {self.customer}\n"
             + "Dog : {self.dog}\n"
             + "Status : {self.service_status}\n"
-            + "Main status : {self.main_status}"
+            + "Main status : {self.main_status}\n"
+            + "Additional service : {self.additional_service}"
         )

@@ -11,10 +11,24 @@ from accounts.models import (
     HouseImages,
     DogFeedingTime,
 )
-from service.models import Service
+from service.models import Services
 from datetime import date
 from django.utils.timezone import datetime, make_aware
 
+class DogFeedingTimeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for dog feeding time model
+    """
+    class Meta:
+        model = DogFeedingTime
+        fields = ["id", "dog", "time"]
+        read_only_fields = ["dog"]
+
+    def create(self, validated_data):
+        dog_id = self.context["view"].kwargs["dog_pk"]
+        dog = Dog.objects.get(id=dog_id)
+        feeding_time = DogFeedingTime.objects.create(dog=dog, **validated_data)
+        return feeding_time
 
 class AccountSerializer(serializers.ModelSerializer):
     """
@@ -81,7 +95,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
     Serializer for dog model
         - use with dog view with not nested resource
     """
-
+    dog_feeding_time=DogFeedingTimeSerializer(many=True,read_only=True)
     class Meta:
         model = Dog
         fields = [
@@ -94,6 +108,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_weight",
             "dog_bio",
             "dog_create_date",
+            "dog_feeding_time"
         ]
 
         extra_kwargs = {
@@ -190,7 +205,7 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
             )
 
         min_time = datetime.min.time()
-        in_progess_service = Service.objects.filter(
+        in_progess_service = Services.objects.filter(
             host=host,
             service_start_time__lte=make_aware(datetime.combine(value, min_time)),
             service_end_time__gte=make_aware(datetime.combine(value, min_time)),
@@ -277,17 +292,4 @@ class HostProfileSerializer(serializers.ModelSerializer):
         return distance
 
 
-class DogFeedingTimeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for dog feeding time model
-    """
-    class Meta:
-        model = DogFeedingTime
-        fields = ["id", "dog", "time"]
-        read_only_fields = ["dog"]
 
-    def create(self, validated_data):
-        dog_id = self.context["view"].kwargs["dog_pk"]
-        dog = Dog.objects.get(id=dog_id)
-        feeding_time = DogFeedingTime.objects.create(dog=dog, **validated_data)
-        return feeding_time

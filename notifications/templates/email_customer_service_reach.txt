@@ -1,3 +1,4 @@
 Hello {{customer_first_name|safe}} {{customer_last_name|safe}}
 Your service start time is {{start_date|safe}} to {{end_date|safe}}
+ราคาบริการของคุณ {{price|safe}} บาท
 check this out at Hostdog website.
