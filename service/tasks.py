@@ -83,7 +83,6 @@ def check_in_progress_service_that_late():
         service.main_status = "late"
         service.days_late = (localtime() - service.service_end_time).days
         service.save()
-    # TODO:
     #   - Payment ต้อง Listening ที่ post_save signal ว่ามีการเปลี่ยนแปลงที่ field created_late_payment
     #   - สร้าง Notification แจ้งเตือนให้
     #   - ส่งเมลล์แจ้งเตือน
@@ -121,7 +120,7 @@ def cancel_that_service():
     service_objects=Services.objects.filter(main_status="payment")
     
     for service in service_objects:
-        payment=Payments.objects.get(service=service,type_payment=deposit)
+        payment=Payments.objects.get(service=service,type_payment="deposit")
         if not payment.is_paid and localtime()-service.service_start_time > timedelta(hours=1)  :
             service.main_status="cancelled"
             service.service_status="you_cancel_this_service"
