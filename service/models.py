@@ -183,7 +183,9 @@ class Services(models.Model):
         payment = Payments.objects.get(service=self, type_payments="deposit")
         if payment.is_paid:
             self.service_status = "caring_for_your_dog"
+            self.dog.dog_status = "hosting"
             self.save()
+            self.dog.save()
             return True
         return False
 
@@ -209,8 +211,10 @@ class Services(models.Model):
             self.main_status = "end"
             self.host.host_hosted_count += 1
             self.customer.customer_hosted_count += 1
+            self.dog.dog_status = "idle"
             self.customer.save()
             self.host.save()
+            self.dog.save()
             self.save()
             return True
         elif self.main_status == "late":
@@ -220,8 +224,10 @@ class Services(models.Model):
                 self.service_status = "service_success"
                 self.host.host_hosted_count += 1
                 self.customer.customer_hosted_count += 1
+                self.dog.dog_status = "idle"
                 self.customer.save()
                 self.host.save()
+                self.dog.save()
                 self.save()
         return False
 
@@ -242,8 +248,10 @@ class Services(models.Model):
             )
             self.main_status = "cancelled"
             self.service_status = "you_cancel_this_service"
+            self.dog.dog_status = "idle"
             Payments.objects.filter(service=self, is_paid=False).delete()
             self.save()
+            self.dog.save()
             return True
         return False
 

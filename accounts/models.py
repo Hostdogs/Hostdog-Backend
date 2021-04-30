@@ -152,7 +152,7 @@ class Dog(models.Model):
     """
     DOG_STATUS = (
         ("idle", "Idle"),
-        ("host", "Host")
+        ("hosting", "Hosting")
     )
     def path_and_rename(instance, filename):
         extension = filename.split(".")[-1]
