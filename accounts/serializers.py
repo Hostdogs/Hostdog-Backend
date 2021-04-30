@@ -39,7 +39,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Accounts
-        fields = ["id", "is_host", "username", "email", "password", "last_login", "date_joined", "token"]
+        fields = ["id", "is_host", "username", "email", "password", "last_login", "account_number",  "date_joined", "token"]
         read_only_fields = ["last_login", "date_joined", "token"]
         extra_kwargs = {
             "password": {"write_only": True},
