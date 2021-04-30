@@ -261,6 +261,8 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         date_range = self.request.query_params.getlist("date_range")
         date_full_range = self.request.query_params.getlist("date_full_range")
         area_range = self.request.query_params.getlist("area_range")
+        lat = self.request.query_params.get("latitude")
+        long = self.request.query_params.get("longitude")
         all_host = self.request.query_params.get("all")
         if all_host:
             return Host.objects.all()
@@ -269,10 +271,8 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         ).distinct()
         # print(dist, weekday, exact_date, date_range, area_range)
         # print(queryset)
-        if dist:
+        if dist and lat and long:
             customer = Customer.objects.get(account=self.request.user)
-            lat = customer.latitude
-            long = customer.longitude
             queryset = queryset.nearest_host_within_x_km(
                 current_lat=lat, current_long=long, x_km=dist
             )
