@@ -105,12 +105,14 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_name",
             "dog_dob",
             "dog_breed",
+            "dog_status",
+            "gender",
             "dog_weight",
             "dog_bio",
             "dog_create_date",
             "dog_feeding_time"
         ]
-
+        read_only_fields = ["dog_status"]
         extra_kwargs = {
             "dog_name": {"required": True},
         }
@@ -133,7 +135,7 @@ class DogProfileWithNestedSerializer(DogProfileSerializer):
 
     class Meta(DogProfileSerializer.Meta):
         fields = DogProfileSerializer.Meta.fields
-        read_only_fields = ["customer", "dog_create_date"]
+        read_only_fields = DogProfileSerializer.Meta.read_only_fields + ["customer", "dog_create_date"]
 
     def create(self, validated_data):
         customer = Customer.objects.get(account=self.context["request"].user)

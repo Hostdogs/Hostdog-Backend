@@ -150,7 +150,10 @@ class Dog(models.Model):
     Dog profile model
         -store dog info
     """
-
+    DOG_STATUS = (
+        ("idle", "Idle"),
+        ("host", "Host")
+    )
     def path_and_rename(instance, filename):
         extension = filename.split(".")[-1]
         return f"dogs/{uuid4().hex}.{extension}"
@@ -167,7 +170,7 @@ class Dog(models.Model):
         max_length=10, blank=False, default="Male", choices=GENDER_OPTIONS
     )
     dog_bio = models.TextField(max_length=100, blank=True)
-    dog_status = models.CharField(max_length=20)
+    dog_status = models.CharField(max_length=20, choices=DOG_STATUS, default="idle")
     dog_create_date = models.DateField(auto_now_add=True)
     dog_dob = models.DateField(default=datetime.date.today)
     dog_breed = models.CharField(max_length=20)
