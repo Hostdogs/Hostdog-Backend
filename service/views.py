@@ -11,17 +11,14 @@ from service.serializers import (
 from service.models import Services, Meal, HostService
 from rest_framework import generics, serializers, viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-class IsOwnerAndHost(BasePermission):
+class HostServicePermission(BasePermission):
     """
     - Allow only Host and Owner to access
     """
-
-    def has_permission(self, request, view):
-        return request.user.is_host
 
     def has_object_permission(self, request, view, obj):
         return obj.host.account == request.user
@@ -46,6 +43,17 @@ class IsAssociatedTo(BasePermission):
             or customer_who_use_service == user
         )
 
+class MealPermission(BasePermission):
+    """
+    เฉพาะเจ้าของ Meal เท่านั้นที่สามารถแก้ไขได้
+    """
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        user = request.user
+        host_service = obj.available_meals.get(host__account=user)
+        return host_service.host.account == user
+
 
 class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
     """
@@ -68,6 +76,14 @@ class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
         else:
             serializer_class = ServiceDetailSerializer
         return serializer_class
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_host:
+            queryset = Services.objects.filter(host__account=user)
+        else:
+            queryset = Services.objects.filter(customer__account=user)
+        return queryset
 
     @action(methods=["post"], detail=True, url_path="response", url_name="response")
     def response(self, request, pk=None):
@@ -135,7 +151,7 @@ class MealViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for managing meal of service
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [MealPermission & IsAuthenticated]
     queryset = Meal.objects.all()
     serializer_class = MealSerializer
     filter_backends = [DjangoFilterBackend]
@@ -174,54 +190,9 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         - Only Owner can access their own
     """
 
-    permission_classes = [IsOwnerAndHost & IsAuthenticated]
+    permission_classes = [HostServicePermission & IsAuthenticated]
     queryset = HostService.objects.all()
     serializer_class = HostServiceSerializer
 
     http_method_names = ["get", "put", "patch", "head", "options"]
     
-    # def get_serializer_class(self):
-    #     serializer_class=self.serializer_class
-    #     parent_lookup=self.kwargs.get("add_meal")
-    #     if parent_lookup:
-    #         serializer_class=MealSerializer
-    #     else:
-    #         serializer_class=HostServiceSerializer
-    #     return serializer_class
-
-    # def get_serializer_class(self):
-    #     serializer_class = self.serializer_class
-    #     parent_lookup = self.kwargs.get("host_pk")
-    #     if parent_lookup:
-    #         serializer_class = HostAvailableDateWithNestedSerializer
-    #     else:
-    #         serializer_class = HostAvailableDateSerializer
-    #     return serializer_class
-
-    # @action(methods=["put"],detail=True ,url_path="addmeal",url_name="add_meal")
-    # def add_meal(self,request,pk=None):
-    #     pass
-        # serializer=MealSerializer(data=request.data)
-
-        # if serializer.is_valid():
-
-        #     service_meal_id=serializer.data.get("id")
-
-        #     meal=Meal.objects.get(id=service_meal_type)
-
-        #     host_service=self.get_object()
-        #     host_service.available_meals.clear()
-        #     host_service.available_meals.add(meal)
-        #     host_service.save()
-                
-        #     return Response(
-        #             {"status": "success", "message": "add Meal Completed"},
-        #             status=status.HTTP_200_OK,)
-        # else:
-        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-    
-

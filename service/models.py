@@ -44,10 +44,10 @@ class HostService(models.Model):
     price_deliver_dog = models.FloatField(default=0.0)
     price_bath_dog = models.FloatField(default=0.0)
 
-    enable_dog_walk = models.BooleanField(default=True)
-    enable_get_dog = models.BooleanField(default=True)
-    enable_delivery_dog = models.BooleanField(default=True)
-    enable_bath_dog = models.BooleanField(default=True)
+    enable_dog_walk = models.BooleanField(default=False)
+    enable_get_dog = models.BooleanField(default=False)
+    enable_delivery_dog = models.BooleanField(default=False)
+    enable_bath_dog = models.BooleanField(default=False)
 
     available_meals = models.ManyToManyField(Meal, related_name="available_meals")
     deposit_price = models.IntegerField(default=300)
@@ -55,10 +55,10 @@ class HostService(models.Model):
     def __str__(self):
         return (
             f" Additional service of {self.host}\n"
-            + "1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n"
-            + "2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n"
-            + "3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n"
-            + "4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"
+            + f"1.) Walk the dog : {self.price_dog_walk} {'ENABLE' if self.enable_dog_walk else 'DISABLE'}\n"
+            + f"2.) Get the dog : {self.price_get_dog} {'ENABLE' if self.enable_get_dog else 'DISABLE'}\n"
+            + f"3.) Deliver the dog : {self.price_deliver_dog} {'ENABLE' if self.enable_delivery_dog else 'DISABLE'}\n"
+            + f"4.) Bath the dog : {self.price_bath_dog} {'ENABLE' if self.enable_bath_dog else 'DISABLE'}"
         )
 
 
@@ -101,7 +101,7 @@ class Services(models.Model):
     service_send_time = models.DateTimeField(blank=True, null=True)
     service_get_time = models.DateTimeField(blank=True, null=True)
     service_meal_type = models.ForeignKey(
-        Meal, on_delete=models.PROTECT, related_name="service_service_meal_type"
+        Meal, on_delete=models.PROTECT, related_name="service_meal_type"
     )
     service_meal_weight = models.IntegerField()
     is_dog_walk = models.BooleanField(default=False)

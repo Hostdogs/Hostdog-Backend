@@ -10,7 +10,15 @@ from accounts.serializers import (
     DogFeedingTimeSerializer,
     HouseImagesSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog, HostAvailableDate, DogFeedingTime, HouseImages
+from accounts.models import (
+    Accounts,
+    Customer,
+    Host,
+    Dog,
+    HostAvailableDate,
+    DogFeedingTime,
+    HouseImages,
+)
 
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
@@ -105,6 +113,28 @@ class AvailableDateOwnPermission(BasePermission):
         return obj.host.account == request.user
 
 
+class DogFeedingTimePermission(BasePermission):
+    """
+    เฉพาะเจ้าของหมาที่สามารถแก้ไขเวลาอาหารที่หมากินได้
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.dog.customer.account == request.user
+
+
+class HouseImagePermission(BasePermission):
+    """
+    เฉพาะเจ้าของรูปบ้านถึงจะแก้ไขรูปบ้านได้
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.host.account == request.user
+
+
 class AccountsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query account
@@ -145,7 +175,10 @@ class AccountsViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in {"update", "partial_update", "destroy", "set_password"}:
             self.permission_classes = [IsOwnerOrAdmin]
-        elif self.action in {"list", "retrieve",}:
+        elif self.action in {
+            "list",
+            "retrieve",
+        }:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
@@ -234,8 +267,8 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = Host.nearest_host.filter(
             host_available_date__date__isnull=False
         ).distinct()
-        #print(dist, weekday, exact_date, date_range, area_range)
-        #print(queryset)
+        # print(dist, weekday, exact_date, date_range, area_range)
+        # print(queryset)
         if dist:
             customer = Customer.objects.get(account=self.request.user)
             lat = customer.latitude
@@ -294,18 +327,24 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             serializer_class = HostAvailableDateSerializer
         return serializer_class
 
-class DogFeedingTimeViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
+
+class DogFeedingTimeViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for dog feeding time
         TODO:
             - Permission
     """
-    queryset=DogFeedingTime.objects.all()
-    serializer_class=DogFeedingTimeSerializer
-    
+
+    permission_classes = [DogFeedingTimePermission & IsAuthenticated]
+    queryset = DogFeedingTime.objects.all()
+    serializer_class = DogFeedingTimeSerializer
+
+
 class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for manageing Host's house image
     """
+
+    permission_classes = [HouseImagePermission & IsAuthenticated]
     queryset = HouseImages.objects.all()
     serializer_class = HouseImagesSerializer

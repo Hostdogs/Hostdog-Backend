@@ -26,6 +26,7 @@ from django.utils.timezone import datetime, localtime, timedelta
                 * register to the correct host available date (SUCCESS) [x]
                 * register to the wrong host available date (FAIL) [x]
                 * register to the date in the past (FAIL) [x]
+                * register with meal that host doensn't have (FAIL) [x]
                 * attribute in service object must correct (SUCCESS)
                 * customer choose wrong additional service (FAIL)
                     @ Host เลือกไม่เปิด Field ตามนี้ แต่ customer กลับเลือกใช้บริการ
@@ -135,7 +136,6 @@ class API_Testing(APITestCase):
             service_start_time=localtime(),
             service_end_time=localtime() + timedelta(days=1),
             service_meal_type=self.meal_001,
-            service_meal_per_day=2,
             service_meal_weight=15,
             is_dog_walk=True,
             is_get_dog=True,
@@ -196,6 +196,9 @@ class ServiceViewSetTesting(APITestCase):
         self.host = Host.objects.get(account=self.acc_host_001)
         self.customer = Customer.objects.get(account=self.acc_cus_001)
         self.additional_service = HostService.objects.get(host=self.host)
+        self.additional_service.enable_dog_walk = True
+        self.additional_service.enable_bath_dog = True
+        self.additional_service.save()
 
         self.dog_001 = Dog.objects.create(
             customer=self.customer,
@@ -204,7 +207,10 @@ class ServiceViewSetTesting(APITestCase):
             gender="male",
         )
 
-        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price_per_gram=150)
+        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price_per_gram=50)
+        self.meal_002 = Meal.objects.create(meal_type="Pizza", meal_price_per_gram=30)
+
+        self.additional_service.available_meals.add(self.meal_001)
 
         for day in range(2):
             self.host_001_available_date = HostAvailableDate.objects.create(
@@ -218,6 +224,7 @@ class ServiceViewSetTesting(APITestCase):
         1.) register to the correct host available date (SUCCESS)
         2.) register to the wrong host available date (FAIL)
         3.) register to the date in the past (FAIL)
+        4.) get service that register (SUCCESS)
         """
         self.client.force_authenticate(
             user=self.acc_cus_001, token=self.token_acc_cus_001
@@ -233,13 +240,12 @@ class ServiceViewSetTesting(APITestCase):
             "service_meal_type": self.meal_001.id,
             "service_meal_weight": 50,
             "is_dog_walk": True,
-            "is_get_dog": True,
-            "is_delivery_dog": True,
+            "is_get_dog": False,
+            "is_delivery_dog": False,
             "is_bath_dog": True,
             "service_bio": "My first service yayyy",
         }
         service_response = self.client.post(url, service_data, format="json")
-        print(service_response.data)
         #2
         service_data_2 = {
             "host": self.host.account.id,
@@ -250,8 +256,8 @@ class ServiceViewSetTesting(APITestCase):
             "service_meal_type": self.meal_001.id,
             "service_meal_weight": 50,
             "is_dog_walk": True,
-            "is_get_dog": True,
-            "is_delivery_dog": True,
+            "is_get_dog": False,
+            "is_delivery_dog": False,
             "is_bath_dog": True,
             "service_bio": "My first service yayyy",
         }
@@ -266,13 +272,90 @@ class ServiceViewSetTesting(APITestCase):
             "service_meal_type": self.meal_001.id,
             "service_meal_weight": 50,
             "is_dog_walk": True,
+            "is_get_dog": False,
+            "is_delivery_dog": False,
+            "is_bath_dog": True,
+            "service_bio": "My first service yayyy",
+        }
+        service_response_3 = self.client.post(url, service_data_3, format="json")
+        #4
+        service_response_4 = self.client.get(url)
+        print(service_response_4.data)
+        self.assertEqual(service_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(service_response_2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(service_response_3.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(service_response_4.status_code, status.HTTP_200_OK)
+
+    def test_select_meal(self):
+        """
+        1.) register with meal that host doensn't have (FAIL)
+        2.) register with meal that host have (SUCCESS)
+        """
+        self.client.force_authenticate(
+            user=self.acc_cus_001, token=self.token_acc_cus_001
+        )
+        url = reverse("service:services-list")
+        service_data_1 = {
+            "host": self.host.account.id,
+            "dog": self.dog_001.id,
+            "service_is_over_night": True,
+            "service_start_time": localtime() + timedelta(hours=3),
+            "service_end_time": localtime() + timedelta(days=1),
+            "service_meal_type": self.meal_002.id,
+            "service_meal_weight": 50,
+            "is_dog_walk": True,
+            "is_get_dog": False,
+            "is_delivery_dog": False,
+            "is_bath_dog": True,
+            "service_bio": "My first service yayyy",
+        }
+        service_response_1 = self.client.post(url, service_data_1, format="json")
+
+        service_data_2 = {
+            "host": self.host.account.id,
+            "dog": self.dog_001.id,
+            "service_is_over_night": True,
+            "service_start_time": localtime() + timedelta(hours=3),
+            "service_end_time": localtime() + timedelta(days=1),
+            "service_meal_type": self.meal_001.id,
+            "service_meal_weight": 50,
+            "is_dog_walk": True,
+            "is_get_dog": False,
+            "is_delivery_dog": False,
+            "is_bath_dog": True,
+            "service_bio": "My first service yayyy",
+        }
+        service_response_2 = self.client.post(url, service_data_2, format="json")
+
+        self.assertEqual(service_response_1.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(service_response_2.status_code, status.HTTP_201_CREATED)
+
+    def test_customer_choose_wrong_additional_service(self):
+        """
+        * customer choose wrong additional service (FAIL)
+            @ Host เลือกไม่เปิด Field ตามนี้ แต่ customer กลับเลือกใช้บริการ
+            @ is_dog_walk
+            @ is_get_dog
+            @ is_delivery_dog
+            @ is_bath_dog
+        """
+        self.client.force_authenticate(
+            user=self.acc_cus_001, token=self.token_acc_cus_001
+        )
+        url = reverse("service:services-list")
+        service_data = {
+            "host": self.host.account.id,
+            "dog": self.dog_001.id,
+            "service_is_over_night": True,
+            "service_start_time": localtime() + timedelta(hours=3),
+            "service_end_time": localtime() + timedelta(days=1),
+            "service_meal_type": self.meal_001.id,
+            "service_meal_weight": 50,
+            "is_dog_walk": True,
             "is_get_dog": True,
             "is_delivery_dog": True,
             "is_bath_dog": True,
             "service_bio": "My first service yayyy",
         }
-        service_response_3 = self.client.post(url, service_data_3, format="json")
-        
-        self.assertEqual(service_response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(service_response_2.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(service_response_3.status_code, status.HTTP_400_BAD_REQUEST)
+        service_response = self.client.post(url, service_data, format="json")
+        self.assertEqual(service_response.status_code, status.HTTP_400_BAD_REQUEST)

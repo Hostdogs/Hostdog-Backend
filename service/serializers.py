@@ -1,8 +1,19 @@
-from re import T
-from accounts.models import Customer, Host, HostAvailableDate
+from accounts.models import Customer, HostAvailableDate
+from accounts.serializers import DogProfileSerializer
 from rest_framework import serializers
 from service.models import Services, Meal, HostService
 from django.utils.timezone import localtime, timedelta
+
+
+class MealSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meal
+        fields = [
+            "id",
+            "meal_type",
+            "meal_price_per_gram",
+        ]
+        read_only_fields = ["meal_type", "meal_price_per_gram"]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -36,10 +47,9 @@ class ServiceSerializer(serializers.ModelSerializer):
             customer=customer, additional_service=additional_service, **validated_data
         )
         return service
-    
+
     def validate_service_meal_type(self, value):
         return value
-
 
     def validate_service_start_time(self, value):
         if value < localtime():
@@ -57,7 +67,10 @@ class ServiceSerializer(serializers.ModelSerializer):
             - check if HostService is enable that field too
             - check if service_start_time, service_end_time is valid for host
             - Customer cant choose day in the past
+            - เช็คว่าเคยลงทะเบียนกับ Host คนนี้เวลานี้ไปแล้ว
         """
+        user = self.context["request"].user
+        customer = Customer.objects.get(account=user)
         is_dog_walk = attrs["is_dog_walk"]
         is_get_dog = attrs["is_get_dog"]
         is_delivery_dog = attrs["is_delivery_dog"]
@@ -90,7 +103,9 @@ class ServiceSerializer(serializers.ModelSerializer):
             )
 
         if service_start_time > service_end_time:
-            raise serializers.ValidationError({"service_start_time": ["start time is greater than end time"]})
+            raise serializers.ValidationError(
+                {"service_start_time": ["start time is greater than end time"]}
+            )
 
         all_date_within_interval = [
             service_start_time.date() + timedelta(days=i)
@@ -104,6 +119,23 @@ class ServiceSerializer(serializers.ModelSerializer):
                     {
                         "service_start_time": ["Bad value : Date range error"],
                         "service_end_time": ["Bad value : Date range error"],
+                    }
+                )
+
+        service_that_customer_register = Services.objects.filter(
+            host=host, customer=customer
+        ).exclude(main_status="cancelled")
+        for service in service_that_customer_register:
+            start_time = localtime(service.service_start_time)
+            end_time = localtime(service.service_end_time)
+            if (
+                start_time <= service_start_time <= end_time
+                or service_start_time <= start_time <= service_end_time
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "service_start_time": ["Bad value : You already register to this service"],
+                        "service_end_time": ["Bad value : You already register to this service"],
                     }
                 )
 
@@ -121,6 +153,8 @@ class ServiceDetailSerializer(ServiceSerializer):
         - use for managing detail of service
     """
 
+    service_meal_type = MealSerializer(many=False, read_only=True)
+    dog = DogProfileSerializer(many=False, read_only=True)
     class Meta(ServiceSerializer.Meta):
         fields = ServiceSerializer.Meta.fields + [
             "customer",
@@ -160,32 +194,24 @@ class ServiceResponseSerializer(serializers.Serializer):
     Serializer for host to response back to customer
         - accept service or decline service
     """
+
     accept = serializers.BooleanField(required=False)
     cancel = serializers.BooleanField(required=False)
     review = serializers.IntegerField(required=False)
     receive_dog = serializers.BooleanField(required=False)
     return_dog = serializers.BooleanField(required=False)
 
-
-class MealSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Meal
-        fields = [
-            "id",
-            "meal_type",
-            "meal_price_per_gram",
-        ]
-        read_only_fields=["meal_type", "meal_price_per_gram"]
-
 class AddMealSerializer(serializers.Serializer):
     """
     Serializer สำหรับส่ง meal id
     """
+
     meal = serializers.IntegerField(required=False)
 
 
 class HostServiceSerializer(serializers.ModelSerializer):
-    available_meals= MealSerializer(many=True,read_only=True)
+    available_meals = MealSerializer(many=True, read_only=True)
+
     class Meta:
         model = HostService
         fields = [
@@ -199,6 +225,5 @@ class HostServiceSerializer(serializers.ModelSerializer):
             "enable_delivery_dog",
             "enable_bath_dog",
             "available_meals",
-            "deposit_price"
-
+            "deposit_price",
         ]
