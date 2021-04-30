@@ -44,6 +44,10 @@ def check_wait_for_progress_service():
         end_date = service.service_end_time
         service.main_status = "payment"
         service.service_status = "time_of_service"
+        # service.save(update_fields=["main_status","service_status"])
+        service.save()
+
+        price=Payments.objects.get(service=service).pay_total
         send_email_customer_service_reach_task(
             email,
             customer_first_name,
@@ -52,9 +56,8 @@ def check_wait_for_progress_service():
             host_last_name,
             start_date,
             end_date,
+            price,
         )
-        # service.save(update_fields=["main_status","service_status"])
-        service.save()
     # ตรงนี้คือหลังจาก ปรับ service ที่ wait_for_progress เป็น in_progress [x]
     # ส่งเมลล์เตือน Customer [x]
 
