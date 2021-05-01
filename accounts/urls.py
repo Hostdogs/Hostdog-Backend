@@ -1,4 +1,3 @@
-from django.views.generic import base
 from accounts.views import (
     AuthToken,
     CustomerProfileViewSet,
