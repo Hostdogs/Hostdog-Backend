@@ -22,6 +22,7 @@ def create_host_service(sender, instance, created, **kwargs):
 def send_email_when_service_create(sender, instance, created, **kwargs):
     """
     ส่งอีเมลล์ไปหา Host เมื่อ Service ถูกสร้างจาก Customer
+    คำนวณราคาของ Service
     """
     if created:
         host = instance.host
@@ -34,6 +35,8 @@ def send_email_when_service_create(sender, instance, created, **kwargs):
             host.first_name,
             host.last_name,
         )
+        instance.total_price = instance.calculate_price()
+        instance.save()
 
 
 @receiver(post_save, sender=Payments)

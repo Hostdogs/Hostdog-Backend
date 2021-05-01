@@ -1,7 +1,7 @@
 from django.db import models
-from accounts.models import Host, Customer, Dog, HostAvailableDate
+from accounts.models import Host, Customer, Dog, HostAvailableDate, DogFeedingTime
 from payment.models import Payments
-from django.utils.timezone import localtime
+from django.utils.timezone import localtime, make_aware, timedelta, datetime
 from django.db.models import Sum
 from notifications.tasks import (
     send_email_customer_host_response_task,
@@ -121,6 +121,56 @@ class Services(models.Model):
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
+    total_price = models.IntegerField(null=True)
+
+    def calculate_price(self):
+        host_service_instance = self.additional_service
+        dog_feeding_time_object = DogFeedingTime.objects.filter(dog=self.dog)
+        service_delta = (
+            localtime(self.service_end_time).date()
+            - localtime(self.service_start_time).date()
+        )
+        meal_weight = self.service_meal_weight
+        meal_price_per_gram = self.service_meal_type.meal_price_per_gram
+        all_date_within_interval = [
+            localtime(self.service_start_time).date() + timedelta(days=i)
+            for i in range(service_delta.days + 1)
+        ]
+        meal_per_service = 0
+        for date in all_date_within_interval:
+            for feedingtime in dog_feeding_time_object:
+                date_feeding = datetime.combine(date, feedingtime.time)
+                if (
+                    localtime(self.service_start_time)
+                    < make_aware(date_feeding)
+                    < localtime(self.service_end_time)
+                ):
+                    meal_per_service += 1
+
+        total_meal_price = meal_per_service * meal_price_per_gram * meal_weight
+        days_for_deposit = len(all_date_within_interval)
+
+        total_price = (
+            host_service_instance.deposit_price * days_for_deposit
+        ) + total_meal_price
+
+        host_service_price = [
+            host_service_instance.price_dog_walk,
+            host_service_instance.price_get_dog,
+            host_service_instance.price_deliver_dog,
+            host_service_instance.price_bath_dog,
+        ]
+
+        enable_service = [
+            host_service_instance.enable_dog_walk,
+            host_service_instance.enable_get_dog,
+            host_service_instance.enable_delivery_dog,
+            host_service_instance.enable_bath_dog,
+        ]
+        for i in range(len(enable_service)):
+            if enable_service[i]:
+                total_price += host_service_price[i]
+        return total_price
 
     def accept(self):
         """
