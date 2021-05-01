@@ -46,9 +46,9 @@ class NearestHost(models.QuerySet):
         """
         Greatest circle distance formula
         """
-        dlat = Radians(F("latitude") - current_lat)
-        dlong = Radians(F("longitude") - current_long)
-        a = Power(Sin(dlat / 2), 2) + Cos(Radians(current_lat)) * Cos(
+        dlat = Radians(F("latitude") - current_lat, output_field=models.DecimalField())
+        dlong = Radians(F("longitude") - current_long, output_field=models.DecimalField())
+        a = Power(Sin(dlat / 2), 2) + Cos(Radians(current_lat, output_field=models.DecimalField())) * Cos(
             Radians(F("latitude"))
         ) * Power(Sin(dlong / 2), 2)
         c = 2 * ATan2(Sqrt(a), Sqrt(1 - a))
