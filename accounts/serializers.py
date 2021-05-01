@@ -169,7 +169,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "longitude",
             "dog_customer",
         ]
-        read_only_fields = ["account"]
+        read_only_fields = ["account", "customer_dog_count", "customer_hosted_count",]
 
 
 class HostAvailableDateSerializer(serializers.ModelSerializer):

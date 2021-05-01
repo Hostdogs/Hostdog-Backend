@@ -333,6 +333,13 @@ class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             serializer_class = HostAvailableDateSerializer
         return serializer_class
 
+    def get_queryset(self):
+        queryset = HostAvailableDate.objects.all()
+        host_pk = self.kwargs.get("host_pk")
+        if host_pk:
+            queryset = queryset.filter(host=host_pk)
+        return queryset
+
 
 class DogFeedingTimeViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -345,6 +352,13 @@ class DogFeedingTimeViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = DogFeedingTime.objects.all()
     serializer_class = DogFeedingTimeSerializer
 
+    def get_queryset(self):
+        queryset = DogFeedingTime.objects.all()
+        dog_pk = self.kwargs.get("dog_pk")
+        if dog_pk:
+            queryset = queryset.filter(dog=dog_pk)
+        return queryset
+
 
 class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
@@ -354,3 +368,10 @@ class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [HouseImagePermission & IsAuthenticated]
     queryset = HouseImages.objects.all()
     serializer_class = HouseImagesSerializer
+
+    def get_queryset(self):
+        queryset = HouseImages.objects.all()
+        host_pk = self.kwargs.get("host_pk")
+        if host_pk:
+            queryset = queryset.filter(host=host_pk)
+        return queryset

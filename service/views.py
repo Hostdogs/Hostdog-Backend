@@ -193,6 +193,11 @@ class HostServiceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [HostServicePermission & IsAuthenticated]
     queryset = HostService.objects.all()
     serializer_class = HostServiceSerializer
-
     http_method_names = ["get", "put", "patch", "head", "options"]
     
+    def get_queryset(self):
+        host_pk = self.kwargs.get("host_pk")
+        queryset = HostService.objects.all()
+        if host_pk:
+            queryset = queryset.filter(host=host_pk)
+        return queryset
