@@ -105,7 +105,7 @@ class TestModel(TestCase):
         cls.cus_001.mobile = "0812345678"
         cls.cus_001.dob = "2021-04-13"
         cls.cus_001.customer_bio = "customer_bio"
-        cls.cus_001.customer_dog_count = 3
+        cls.cus_001.customer_dog_count = 0
         cls.cus_001.customer_hosted_count = 4
 
         cls.host_001 = Host.objects.get(account=cls.acc_host_001)
@@ -186,7 +186,7 @@ class TestModel(TestCase):
         self.assertEqual(mobile,'0812345678')
         self.assertEqual(dob,'2021-04-13')
         self.assertEqual(customer_bio,'customer_bio')
-        self.assertEqual(customer_dog_count,3)
+        self.assertEqual(customer_dog_count,1)
         self.assertEqual(customer_hosted_count,4)
 
     def test_host(self):
@@ -398,12 +398,11 @@ class TestAPI(APITestCase):
         data1={
             "first_name":'first_name',
             "last_name":'last_name',
-            "gender":'Male',
+            "gender":'male',
             "host_bio":'host_bio',
             "host_rating":4.53,
             "host_hosted_count":10,
             "host_max":9,
-            "host_available_date":'2021-04-13',
             "host_area":20.5,
             "address":'address',
             "mobile":'0812345678',
@@ -452,7 +451,7 @@ class TestAPI(APITestCase):
             'dog_weight':55.36
         }
         response3=self.client.post(url1,data3,format='json')
-        response3=self.client.delete(url2,data3,format='json')
+        response3=self.client.delete(url2, format='json')
         
 
         self.assertEqual(response1.status_code,status.HTTP_201_CREATED)

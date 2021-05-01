@@ -215,7 +215,7 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^dog_name", r"^dog_breed"]
-    filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
+    filterset_fields = ["dog_status", "dog_breed", "dog_weight", "gender"]
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
