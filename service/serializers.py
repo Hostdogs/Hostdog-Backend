@@ -238,3 +238,4 @@ class HostServiceSerializer(serializers.ModelSerializer):
             "available_meals",
             "deposit_price",
         ]
+        read_only_fields = ["host"]

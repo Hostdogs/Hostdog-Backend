@@ -1,6 +1,7 @@
+from django.http import response
 from django.test import TestCase
 from django.urls import reverse
-from accounts.models import Customer, Dog, Host, Accounts, HostAvailableDate
+from accounts.models import Customer, Dog, DogFeedingTime, Host, Accounts, HostAvailableDate
 from service.models import HostService, Services, Meal
 from rest_framework.test import APIClient, APITestCase
 from datetime import date
@@ -48,9 +49,9 @@ from django.utils.timezone import datetime, localtime, timedelta
             * สร้างมื้ออาหารได้ (SUCCESS)
             * ปรับราคาได้ (SUCCESS)
         - HostServiceViewSet
-            * host ปรับ enable/disable additional service ได้ (SUCCESS)
-            * host ปรับราคา additional service ได้ (SUCCESS)
-            * host เพิ่ม/ลบ อาหารจาก Meal ได้ (SUCCESS)
+            * host ปรับ enable/disable additional service ได้ (SUCCESS) [x]
+            * host ปรับราคา additional service ได้ (SUCCESS) [x]
+            * host เพิ่ม/ลบ อาหารจาก Meal ได้ (SUCCESS) [x]
 """
 
 
@@ -87,7 +88,9 @@ class Model_Testing(TestCase):
             longitude=10,
         )
 
-        self.meal_001 = Meal.objects.create(meal_type="meal_type", meal_price_per_gram=24.132)
+        self.meal_001 = Meal.objects.create(
+            meal_type="meal_type", meal_price_per_gram=24.132
+        )
 
     def test_meal(self):
         meal = Meal.objects.get(id=self.meal_001.id)
@@ -128,7 +131,9 @@ class API_Testing(APITestCase):
             dog_breed="USA",
             gender="male",
         )
-        self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price_per_gram=150)
+        self.meal_001 = Meal.objects.create(
+            meal_type="Chicken", meal_price_per_gram=150
+        )
         self.service = Services.objects.create(
             customer=self.customer,
             host=self.host,
@@ -153,13 +158,18 @@ class API_Testing(APITestCase):
         3.) register date that in service (FAIL)
         """
         # Reverse view -> url
-        #App : accounts
-        #url_name : 
-        self.client.force_authenticate(user=self.acc_host_001, token=self.token_acc_host_001)
-        url = reverse("accounts:profilehost-availabledate-list", kwargs={"host_pk": self.acc_host_001.id})
+        # App : accounts
+        # url_name :
+        self.client.force_authenticate(
+            user=self.acc_host_001, token=self.token_acc_host_001
+        )
+        url = reverse(
+            "accounts:profilehost-availabledate-list",
+            kwargs={"host_pk": self.acc_host_001.id},
+        )
         # url = api/profilehost/idของhostคนนี้/available-date/
         # 1
-        yesterday =  date.today() - timedelta(days=1)
+        yesterday = date.today() - timedelta(days=1)
         data1 = {"date": yesterday}
         response1 = self.client.post(url, data1, format="json")
         # 2
@@ -206,6 +216,9 @@ class ServiceViewSetTesting(APITestCase):
             dog_breed="USA",
             gender="male",
         )
+        feeding_times = ["06:00", "18:00"]
+        for feeding_time in feeding_times:
+            DogFeedingTime.objects.create(dog=self.dog_001, time=feeding_time)
 
         self.meal_001 = Meal.objects.create(meal_type="Chicken", meal_price_per_gram=50)
         self.meal_002 = Meal.objects.create(meal_type="Pizza", meal_price_per_gram=30)
@@ -230,7 +243,7 @@ class ServiceViewSetTesting(APITestCase):
             user=self.acc_cus_001, token=self.token_acc_cus_001
         )
         url = reverse("service:services-list")
-        #1
+        # 1
         service_data = {
             "host": self.host.account.id,
             "dog": self.dog_001.id,
@@ -246,7 +259,7 @@ class ServiceViewSetTesting(APITestCase):
             "service_bio": "My first service yayyy",
         }
         service_response = self.client.post(url, service_data, format="json")
-        #2
+        # 2
         service_data_2 = {
             "host": self.host.account.id,
             "dog": self.dog_001.id,
@@ -262,7 +275,7 @@ class ServiceViewSetTesting(APITestCase):
             "service_bio": "My first service yayyy",
         }
         service_response_2 = self.client.post(url, service_data_2, format="json")
-        #3
+        # 3
         service_data_3 = {
             "host": self.host.account.id,
             "dog": self.dog_001.id,
@@ -278,9 +291,8 @@ class ServiceViewSetTesting(APITestCase):
             "service_bio": "My first service yayyy",
         }
         service_response_3 = self.client.post(url, service_data_3, format="json")
-        #4
+        # 4
         service_response_4 = self.client.get(url)
-        print(service_response_4.data)
         self.assertEqual(service_response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(service_response_2.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(service_response_3.status_code, status.HTTP_400_BAD_REQUEST)
@@ -359,3 +371,60 @@ class ServiceViewSetTesting(APITestCase):
         }
         service_response = self.client.post(url, service_data, format="json")
         self.assertEqual(service_response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_hostservice(self):
+        """
+        1.) host ปรับ enable/disable additional service ได้ (SUCCESS)
+        2.) host ปรับราคา additional service ได้ (SUCCESS)
+        """
+        self.client.force_authenticate(
+            user=self.acc_host_001, token=self.token_acc_host_001
+        )
+        url = reverse(
+            "accounts:profilehost-host-service-detail",
+            kwargs={"host_pk": self.acc_host_001.id, "pk": self.acc_host_001.id},
+        )
+        update_data = {
+            "enable_dog_walk": False,
+            "enable_delivery_dog": True,
+            "price_dog_walk": 50,
+            "price_bath_dog": 100,
+        }
+        response_1 = self.client.patch(url, update_data, format="json")
+        response_2 = self.client.get(url)
+        self.assertEqual(response_1.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_2.status_code, status.HTTP_200_OK)
+
+    def test_host_add_del_meal(self):
+        """
+        1.) host เพิ่ม/ลบ อาหารจาก Meal ได้ (SUCCESS)
+        2.) host เพิ่ม อาหารที่ผิด (FAIL)
+        """
+        self.client.force_authenticate(
+            user=self.acc_host_001, token=self.token_acc_host_001
+        )
+        url_1 = reverse(
+            "accounts:host-service-meals-list",
+            kwargs={
+                "host_pk": self.acc_host_001.id,
+                "host_service_pk": self.acc_host_001.id,
+            },
+        )
+        select_meal_data_1 = {"meal": self.meal_001.id}
+        response_1 = self.client.post(url_1, select_meal_data_1, format="json")
+        select_meal_data_2 = {"meal": 9999999999}
+        response_2 = self.client.post(url_1, select_meal_data_2, format="json")
+        print(response_2.data)
+        self.assertEqual(response_1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_2.status_code, status.HTTP_400_BAD_REQUEST)
+
+        url_2 = reverse(
+            "accounts:host-service-meals-detail",
+            kwargs={
+                "host_pk": self.acc_host_001.id,
+                "host_service_pk": self.acc_host_001.id,
+                "pk": self.meal_001.id
+            },
+        )
+        response_3 = self.client.delete(url_2)
+        self.assertEqual(response_3.status_code, status.HTTP_204_NO_CONTENT)

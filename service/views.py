@@ -101,7 +101,6 @@ class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
             review = serializer.data.get("review")
             return_dog = serializer.data.get("return_dog")
             receive_dog = serializer.data.get("receive_dog")
-            print("receive_dog",receive_dog)
             if user.is_host: # Host
                 if service.main_status == "pending": # Accept/Decline
                     if accept:
@@ -133,7 +132,6 @@ class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
                     return Response(response_data, status=status_code)
                 elif service.main_status == "in_progress":  # กดรับหมา
                     if receive_dog:
-                        print("kuy pat")
                         customer_receive_dog_success = service.customer_receive_dog()
                         response_data = {"success": "Customer receive dog success"} if customer_receive_dog_success else {"fail": "Customer fail to receive dog"}
                         status_code = status.HTTP_200_OK if customer_receive_dog_success else status.HTTP_400_BAD_REQUEST

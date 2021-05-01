@@ -225,7 +225,13 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             serializer_class = DogProfileSerializer
         return serializer_class
-
+    
+    def get_queryset(self):
+        queryset = Dog.objects.all()
+        customer_pk = self.kwargs.get("customer_pk")
+        if customer_pk:
+            queryset = queryset.filter(dog_customer=customer_pk)
+        return super().get_queryset()
 
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """

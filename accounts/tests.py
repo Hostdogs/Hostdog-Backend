@@ -476,3 +476,9 @@ class TestAPI(APITestCase):
         self.assertEqual(response1.status_code,status.HTTP_201_CREATED)
         self.assertEqual(response2.status_code,status.HTTP_400_BAD_REQUEST)
 
+    def test_add_dog_feeding_time(self):
+        """
+        1.) เพิ่ม Feeding time ให้หมา (SUCCESS)
+        """
+        pass
+
