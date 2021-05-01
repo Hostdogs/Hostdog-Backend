@@ -307,7 +307,7 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if len(area_range) >= 2:
             area_range_interval = area_range[:2]
             queryset = queryset.filter(
-                host_available_date_area__range=area_range_interval
+                host_area__range=area_range_interval
             )
         return queryset
 
