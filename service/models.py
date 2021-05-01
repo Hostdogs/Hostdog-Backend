@@ -184,6 +184,7 @@ class Services(models.Model):
         if payment.is_paid:
             self.service_status = "caring_for_your_dog"
             self.dog.dog_status = "hosting"
+            self.service_send_time = localtime()
             self.save()
             self.dog.save()
             return True
@@ -209,6 +210,7 @@ class Services(models.Model):
         if self.main_status == "in_progress" and self.is_customer_receive_dog:
             self.service_status = "service_success"
             self.main_status = "end"
+            self.service_get_time = localtime()
             self.host.host_hosted_count += 1
             self.customer.customer_hosted_count += 1
             self.dog.dog_status = "idle"
@@ -222,6 +224,7 @@ class Services(models.Model):
             if late_payment.is_paid:
                 self.main_status = "end"
                 self.service_status = "service_success"
+                self.service_get_time = localtime()
                 self.host.host_hosted_count += 1
                 self.customer.customer_hosted_count += 1
                 self.dog.dog_status = "idle"
