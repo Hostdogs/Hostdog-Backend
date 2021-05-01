@@ -48,9 +48,6 @@ class ServiceSerializer(serializers.ModelSerializer):
         )
         return service
 
-    def validate_service_meal_type(self, value):
-        return value
-
     def validate_service_start_time(self, value):
         if value < localtime():
             raise serializers.ValidationError("Do you have a time machine?")
@@ -201,6 +198,11 @@ class ServiceResponseSerializer(serializers.Serializer):
     receive_dog = serializers.BooleanField(required=False)
     return_dog = serializers.BooleanField(required=False)
 
+    def validate_review(self, value):
+        if not (0 <= value <= 5):
+            raise serializers.ValidationError("review range is 0 - 5")
+        return value
+
 class AddMealSerializer(serializers.Serializer):
     """
     Serializer สำหรับส่ง meal id
@@ -208,6 +210,11 @@ class AddMealSerializer(serializers.Serializer):
 
     meal = serializers.IntegerField(required=False)
 
+    def validate_meal(self, value):
+        add_meal = Meal.objects.filter(id=value)
+        if not add_meal.exists():
+            raise serializers.ValidationError("Invalid meal")
+        return value
 
 class HostServiceSerializer(serializers.ModelSerializer):
     available_meals = MealSerializer(many=True, read_only=True)

@@ -272,13 +272,11 @@ class Services(models.Model):
             )
             self.is_review = True
             if self.rating is None:
-                print("asjdkfhalsdhflahdlasdjghladghjlajkfdgkasdhglaksdjghasdg")
                 self.rating = 0
             self.rating += review_score
             service_that_rate = Services.objects.filter(
                 host=self.host, is_review=True, rating__isnull=False
             )
-            print("service_that_rate", service_that_rate)
             other_rating = 0
             if service_that_rate.count() > 0:
                 other_rating = service_that_rate.aggregate(Sum("rating"))["rating__sum"]
