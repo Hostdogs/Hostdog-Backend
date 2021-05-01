@@ -91,10 +91,10 @@ class Host(models.Model):
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
     latitude = models.DecimalField(
-        max_digits=22, decimal_places=20, blank=True, null=True
+        max_digits=32, decimal_places=20, blank=True, null=True
     )
     longitude = models.DecimalField(
-        max_digits=22, decimal_places=20, blank=True, null=True
+        max_digits=32, decimal_places=20, blank=True, null=True
     )
     objects = models.Manager()
     nearest_host = NearestHost.as_manager()
@@ -135,10 +135,10 @@ class Customer(models.Model):
     mobile = models.CharField(max_length=10, blank=True)
     dob = models.DateField(default=datetime.date.today)
     latitude = models.DecimalField(
-        max_digits=22, decimal_places=20, blank=True, null=True
+        max_digits=32, decimal_places=20, blank=True, null=True
     )
     longitude = models.DecimalField(
-        max_digits=22, decimal_places=20, blank=True, null=True
+        max_digits=32, decimal_places=20, blank=True, null=True
     )
 
     def __str__(self):
