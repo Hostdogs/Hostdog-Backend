@@ -298,7 +298,7 @@ class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 start_date + timedelta(days=i) for i in range(delta.days + 1)
             ]
             for wanted_date in all_date_within_interval:
-                queryset = queryset.filter(host__date=wanted_date)
+                queryset = queryset.filter(host_available_date__date=wanted_date)
         if len(date_range) >= 2:
             date_range_interval = date_range[:2]
             queryset = queryset.filter(
