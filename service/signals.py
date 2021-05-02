@@ -1,6 +1,6 @@
 from payment.models import Payments
 from django.db.models.signals import post_save
-from accounts.models import Host
+from accounts.models import Dog, Host
 from service.models import HostService, Services
 from django.dispatch import receiver
 from notifications.tasks import send_email_host_service_task
@@ -38,6 +38,17 @@ def send_email_when_service_create(sender, instance, created, **kwargs):
         instance.total_price = instance.calculate_price()
         instance.save()
 
+@receiver(post_save, sender=Dog)
+def update_price_when_dog_update(sender, instance, created, **kwargs):
+    """
+    ปรับราคา Total price เมื่อ Dog ปรับ feeding time
+    """
+    if not created:
+        service_that_dog_in = Services.objects.filter(dog=instance, main_status__in=["pending", "payment"])
+        if service_that_dog_in.exists():
+            service = service_that_dog_in.first()
+            service.total_price = service_that_dog_in.calculate_price()
+            service.save()
 
 @receiver(post_save, sender=Payments)
 def update_create_payment_field(sender, instance, created, **kwargs):

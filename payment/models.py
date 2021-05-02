@@ -20,4 +20,4 @@ class Payments(models.Model):
 
 
     def __str__(self):
-        return str(service)+' '+str(pay_total)
+        return str(self.service)+' '+str(self.pay_total)

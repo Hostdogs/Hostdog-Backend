@@ -200,7 +200,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
             distance = validated_data.distance
         except AttributeError as e:
             print(e)
-            return "-"
+            return None
         return distance
 
 class CustomerProfileSerializer(serializers.ModelSerializer):

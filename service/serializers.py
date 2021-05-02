@@ -1,7 +1,8 @@
 from accounts.models import Customer, HostAvailableDate
-from accounts.serializers import DogProfileSerializer
+from accounts.serializers import CustomerProfileSerializer, DogProfileSerializer, HostProfileSerializer
 from rest_framework import serializers
 from service.models import Services, Meal, HostService
+from payment.serializers import PaymentSerializer
 from django.utils.timezone import localtime, timedelta
 
 
@@ -152,6 +153,9 @@ class ServiceDetailSerializer(ServiceSerializer):
 
     service_meal_type = MealSerializer(many=False, read_only=True)
     dog = DogProfileSerializer(many=False, read_only=True)
+    servicepayments = PaymentSerializer(many=True, read_only=True)
+    host = HostProfileSerializer(many=False, read_only=True)
+    customer = CustomerProfileSerializer(many=False, read_only=True)
     class Meta(ServiceSerializer.Meta):
         fields = ServiceSerializer.Meta.fields + [
             "customer",
@@ -160,6 +164,7 @@ class ServiceDetailSerializer(ServiceSerializer):
             "service_send_time",
             "service_get_time",
             "main_status",
+            "servicepayments",
             "total_price",
         ]
         read_only_fields = [

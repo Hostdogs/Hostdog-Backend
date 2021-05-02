@@ -117,12 +117,15 @@ def notify_near_end_service(before_hour):
 
 @task(name="service_not_pay_in_service_time")
 def cancel_that_service():
+    """
+    Task นี้มีไว้ลบ Service ที่ไม่จ่ายเงินในระยะเวลา 1 ชั่วโมงหลังถึงเวลาบริการ
+
+    schedule : ทำการรัน Task ทุก 1 นาที
+    """
     service_objects=Services.objects.filter(main_status="payment")
     
     for service in service_objects:
         payment=Payments.objects.get(service=service,type_payment="deposit")
         if not payment.is_paid and localtime()-service.service_start_time > timedelta(hours=1)  :
-            service.main_status="cancelled"
-            service.service_status="you_cancel_this_service"
-            service.save()
+            service.cancel()
     return f"payment service: {service_objects}"
