@@ -182,7 +182,6 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_bio",
             "host_rating",
             "host_hosted_count",
-            "host_max",
             "host_available_date",
             "host_area",
             "address",

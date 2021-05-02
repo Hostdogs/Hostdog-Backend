@@ -84,8 +84,6 @@ class Host(models.Model):
     host_bio = models.TextField(max_length=100, blank=True)
     host_rating = models.FloatField(default=0.0)
     host_hosted_count = models.IntegerField(default=0)
-    host_max = models.IntegerField(default=0)
-    host_avaliable = models.IntegerField(default=0)
     host_area = models.FloatField(default=0.0)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)

@@ -94,7 +94,6 @@ class Services(models.Model):
     )
     dog = models.ForeignKey(Dog, on_delete=models.CASCADE, related_name="service_dog")
     service_status = models.CharField(max_length=40, choices=STATUS)
-    service_is_over_night = models.BooleanField(default=False)
     service_create_time = models.DateTimeField(auto_now_add=True)
     service_start_time = models.DateTimeField()
     service_end_time = models.DateTimeField()
@@ -111,7 +110,7 @@ class Services(models.Model):
     additional_service = models.ForeignKey(
         HostService, on_delete=models.CASCADE, related_name="additional_service"
     )
-    service_bio = models.TextField(max_length=255, default="")
+    service_bio = models.TextField(max_length=255, default="", blank=True)
     created_deposit_payment = models.BooleanField(default=False)
     created_late_payment = models.BooleanField(default=False)
     days_late = models.IntegerField(default=0)
