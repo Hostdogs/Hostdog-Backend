@@ -47,7 +47,6 @@ class TestModel(TestCase):
 
         cls.acc_host_001 = Accounts.objects.create(
             is_superuser=False,
-            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User001',
             email='account@email.com',
             is_active=True,
@@ -60,7 +59,6 @@ class TestModel(TestCase):
 
         cls.acc_cus_001 = Accounts(
             is_superuser=False,
-            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User002',
             email='account@email.com',
             is_active=True,
@@ -73,7 +71,6 @@ class TestModel(TestCase):
         
         cls.acc_host_002 = Accounts(
             is_superuser=False,
-            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User003',
             email='account@email.com',
             is_active=True,
@@ -86,7 +83,6 @@ class TestModel(TestCase):
 
         cls.acc_host_003 = Accounts.objects.create(
             is_superuser=False,
-            last_login='2021-04-13 14:37:50.965870+00:00',
             username='test_User004',
             email='account@email.com',
             is_active=True,
@@ -145,7 +141,6 @@ class TestModel(TestCase):
         acc = self.acc_host_001
         is_superuser = acc.is_superuser
         password = f'{acc.password}'
-        last_login = f'{acc.last_login}'
         username = acc.username
         email = f'{acc.email}'
         is_active = acc.is_active
@@ -157,7 +152,6 @@ class TestModel(TestCase):
         self.assertEqual(word,username)
         self.assertFalse(is_superuser)
         self.assertNotEqual(password,'123123123')
-        self.assertEqual(last_login,'2021-04-13 14:37:50.965870+00:00')
         self.assertEqual(username,'test_User001')
         self.assertEqual(email,'account@email.com')
         self.assertTrue(is_active)

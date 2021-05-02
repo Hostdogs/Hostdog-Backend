@@ -30,66 +30,6 @@ class DogFeedingTimeSerializer(serializers.ModelSerializer):
         feeding_time = DogFeedingTime.objects.create(dog=dog, **validated_data)
         return feeding_time
 
-class AccountSerializer(serializers.ModelSerializer):
-    """
-    Serializer for account model
-    """
-
-    token = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Accounts
-        fields = ["id", "is_host", "username", "email", "password", "last_login", "account_number",  "date_joined", "token"]
-        read_only_fields = ["last_login", "date_joined", "token"]
-        extra_kwargs = {
-            "password": {"write_only": True},
-        }
-
-    def get_token(self, validated_data):
-        user = Accounts.objects.get(username=validated_data.username)
-        token = Token.objects.get(user=user)
-        return token.key
-
-    def validate(self, attrs):
-        """
-        validate the email and is_host field
-            - username is unique
-            - one email can apply for 2 times
-            - in two email cant apply for the same role
-        """
-        is_host = attrs["is_host"]
-        email = attrs["email"]
-        account_email = Accounts.objects.filter(email=email)
-        if account_email.count() >= 2:
-            raise serializers.ValidationError(
-                {"email": ["This email has already been used."]}
-            )
-        elif account_email.filter(is_host=is_host).exists():
-            raise serializers.ValidationError(
-                {
-                    "is_host": [
-                        f"This email has already been used for {'Host' if is_host else 'Customer'}"
-                    ]
-                }
-            )
-        return super().validate(attrs)
-
-    def create(self, validated_data):
-        account = Accounts.objects.create_user(**validated_data)
-        token = Token.objects.create(user=account)
-        return account
-
-
-class ChangePasswordSerializer(serializers.Serializer):
-    """
-    Serializer for password change endpoint
-    """
-
-    model = Accounts
-    old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
-
-
 class DogProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for dog model
@@ -142,36 +82,6 @@ class DogProfileWithNestedSerializer(DogProfileSerializer):
         dog = Dog.objects.create(customer=customer, **validated_data)
         return dog
 
-
-class CustomerProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer for customer model
-        - use when create customer profile
-    """
-
-    dog_customer = DogProfileSerializer(read_only=True, many=True)
-
-    class Meta:
-        model = Customer
-        fields = [
-            "account",
-            "picture",
-            "first_name",
-            "last_name",
-            "customer_bio",
-            "customer_dog_count",
-            "customer_hosted_count",
-            "address",
-            "gender",
-            "mobile",
-            "dob",
-            "latitude",
-            "longitude",
-            "dog_customer",
-        ]
-        read_only_fields = ["account", "customer_dog_count", "customer_hosted_count",]
-
-
 class HostAvailableDateSerializer(serializers.ModelSerializer):
     """
     Serializer for host available date for service
@@ -219,7 +129,6 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
 
         return value
 
-
 class HostAvailableDateWithNestedSerializer(HostAvailableDateSerializer):
     """
     Serializer for HostAvailable date model(Extend from HostAvailableDateSerializer)
@@ -252,7 +161,6 @@ class HouseImagesSerializer(serializers.ModelSerializer):
         host = Host.objects.get(account=self.context["request"].user)
         house_image = HouseImages.objects.create(host=host, **validated_data)
         return house_image
-
 
 class HostProfileSerializer(serializers.ModelSerializer):
     """
@@ -295,5 +203,105 @@ class HostProfileSerializer(serializers.ModelSerializer):
             return "-"
         return distance
 
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for customer model
+        - use when create customer profile
+    """
+
+    dog_customer = DogProfileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Customer
+        fields = [
+            "account",
+            "picture",
+            "first_name",
+            "last_name",
+            "customer_bio",
+            "customer_dog_count",
+            "customer_hosted_count",
+            "address",
+            "gender",
+            "mobile",
+            "dob",
+            "latitude",
+            "longitude",
+            "dog_customer",
+        ]
+        read_only_fields = ["account", "customer_dog_count", "customer_hosted_count",]
+
+class AccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for account model
+    """
+
+    token = serializers.SerializerMethodField()
+    customer = serializers.SerializerMethodField()
+    host = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Accounts
+        fields = ["id", "is_host", "username", "email", "password", "last_login", "account_number",  "date_joined", "token", "customer", "host"]
+        read_only_fields = ["last_login", "date_joined", "token", "customer", "host"]
+        extra_kwargs = {
+            "password": {"write_only": True},
+        }
+
+    def get_token(self, validated_data):
+        if self.context["view"].action == "create":
+            user = Accounts.objects.get(username=validated_data.username)
+            token = Token.objects.get(user=user)
+            return token.key
+        return None
+
+    def get_customer(self, validated_data):
+        if not validated_data.is_host:
+            customer = Customer.objects.get(account__username=validated_data.username)
+            return CustomerProfileSerializer(instance=customer).data
+        return None
+
+    def get_host(self, validated_data):
+        if validated_data.is_host:
+            host = Host.objects.get(account__username=validated_data.username)
+            return HostProfileSerializer(instance=host).data
+        return None
+
+    def validate(self, attrs):
+        """
+        validate the email and is_host field
+            - username is unique
+            - one email can apply for 2 times
+            - in two email cant apply for the same role
+        """
+        is_host = attrs["is_host"]
+        email = attrs["email"]
+        account_email = Accounts.objects.filter(email=email)
+        if account_email.count() >= 2:
+            raise serializers.ValidationError(
+                {"email": ["This email has already been used."]}
+            )
+        elif account_email.filter(is_host=is_host).exists():
+            raise serializers.ValidationError(
+                {
+                    "is_host": [
+                        f"This email has already been used for {'Host' if is_host else 'Customer'}"
+                    ]
+                }
+            )
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        account = Accounts.objects.create_user(**validated_data)
+        token = Token.objects.create(user=account)
+        return account
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint
+    """
+
+    model = Accounts
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)

@@ -33,7 +33,8 @@ from rest_framework.permissions import (
     BasePermission,
     SAFE_METHODS,
 )
-from datetime import date, timedelta, datetime
+from datetime import date
+from django.utils.timezone import localtime, datetime, timedelta
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -195,6 +196,8 @@ class AuthToken(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         token, created = Token.objects.get_or_create(user=user)
+        user.last_login = localtime()
+        user.save()
         return Response(
             {
                 "token": token.key,
