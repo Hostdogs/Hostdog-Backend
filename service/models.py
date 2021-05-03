@@ -315,7 +315,7 @@ class Services(models.Model):
         Customer สามารถรีวิวบริการได้
         """
         # แจ้งเตือน Host ถึงคะแนน Review
-        if self.main_status == "end":
+        if self.main_status == "end" and not self.is_review:
             email = self.host.account.email
             send_email_host_service_review_task(
                 email,
