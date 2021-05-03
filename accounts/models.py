@@ -71,7 +71,7 @@ class Host(models.Model):
         Accounts,
         on_delete=models.CASCADE,
         primary_key=True,
-        related_name="host_account",
+        related_name="host",
     )
     picture = models.ImageField(
         verbose_name=_("Host's image"), upload_to=path_and_rename, blank=True
@@ -116,7 +116,7 @@ class Customer(models.Model):
         Accounts,
         on_delete=models.CASCADE,
         primary_key=True,
-        related_name="customer_account",
+        related_name="customer",
     )
     picture = models.ImageField(
         verbose_name=_("Customer's image"), upload_to=path_and_rename, blank=True
