@@ -95,6 +95,7 @@ class Services(models.Model):
     dog = models.ForeignKey(Dog, on_delete=models.CASCADE, related_name="service_dog")
     service_status = models.CharField(max_length=40, choices=STATUS)
     service_create_time = models.DateTimeField(auto_now_add=True)
+    service_reply_time = models.DateTimeField(blank=True, null=True)
     service_start_time = models.DateTimeField()
     service_end_time = models.DateTimeField()
     service_send_time = models.DateTimeField(blank=True, null=True)
@@ -192,6 +193,7 @@ class Services(models.Model):
                 True,
             )
             self.main_status = "wait_for_progress"
+            self.service_reply_time = localtime()
             date_range = (
                 localtime(self.service_start_time).date(),
                 localtime(self.service_end_time).date(),
@@ -222,6 +224,7 @@ class Services(models.Model):
                 False,
             )
             self.main_status = "cancelled"
+            self.service_reply_time = localtime()
             self.save()
             return True
         return False
@@ -314,7 +317,7 @@ class Services(models.Model):
         Customer สามารถรีวิวบริการได้
         """
         # แจ้งเตือน Host ถึงคะแนน Review
-        if self.main_status == "end":
+        if self.main_status == "end" and not self.is_review:
             email = self.host.account.email
             send_email_host_service_review_task(
                 email,
@@ -346,9 +349,9 @@ class Services(models.Model):
     def __str__(self):
         return (
             f"Service by {self.host}\n"
-            + "Customer : {self.customer}\n"
-            + "Dog : {self.dog}\n"
-            + "Status : {self.service_status}\n"
-            + "Main status : {self.main_status}\n"
-            + "Additional service : {self.additional_service}"
+            + f"Customer : {self.customer}\n"
+            + f"Dog : {self.dog}\n"
+            + f"Status : {self.service_status}\n"
+            + f"Main status : {self.main_status}\n"
+            + f"Additional service : {self.additional_service}"
         )
