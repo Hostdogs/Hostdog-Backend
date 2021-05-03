@@ -1,4 +1,9 @@
 # 🔫 Hostdog-API 💻
+## Database
+PostgreSQL
+
+![Imgur](https://i.imgur.com/rzH9OOf.png)
+
 ## Setup
 เริ่มจากการ clone repository นี้ก่อน
 ```sh
@@ -18,6 +23,7 @@ $ source <name>/Scripts/activate
 ```sh
 (venv)$ pip install -r requirements.txt
 ```
+
 หลังจากนั้น
 ```sh
 (venv)$ py manage.py runserver
