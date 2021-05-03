@@ -6,7 +6,7 @@
 - PostgreSQL
 สร้าง new database ชื่อ Hostdog
 
-![Imgur](https://i.imgur.com/5Ky7ILv.jpg?2)
+![Imgur](https://i.imgur.com/AYLNLZJ.png)
 
 - Redis 
 
