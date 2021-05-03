@@ -123,7 +123,6 @@ class Services(models.Model):
     total_price = models.IntegerField(null=True)
 
     def calculate_price(self):
-        host_service_instance = self.additional_service
         dog_feeding_time_object = DogFeedingTime.objects.filter(dog=self.dog)
         service_delta = (
             localtime(self.service_end_time).date()
@@ -150,22 +149,25 @@ class Services(models.Model):
         days_for_deposit = len(all_date_within_interval)
 
         total_price = (
-            host_service_instance.deposit_price * days_for_deposit
+            self.additional_service.deposit_price * days_for_deposit
         ) + total_meal_price
 
         host_service_price = [
-            host_service_instance.price_dog_walk,
-            host_service_instance.price_get_dog,
-            host_service_instance.price_deliver_dog,
-            host_service_instance.price_bath_dog,
+            self.additional_service.price_dog_walk,
+            self.additional_service.price_get_dog,
+            self.additional_service.price_deliver_dog,
+            self.additional_service.price_bath_dog,
         ]
 
         enable_service = [
-            host_service_instance.enable_dog_walk,
-            host_service_instance.enable_get_dog,
-            host_service_instance.enable_delivery_dog,
-            host_service_instance.enable_bath_dog,
+            self.is_dog_walk,
+            self.is_get_dog,
+            self.is_delivery_dog,
+            self.is_bath_dog,
+
         ]
+        print("enable_service");
+        print(enable_service);
         for i in range(len(enable_service)):
             if enable_service[i]:
                 total_price += host_service_price[i]
