@@ -255,8 +255,6 @@ class AccountSerializer(serializers.ModelSerializer):
     token = serializers.SerializerMethodField()
     customer = CustomerProfileSerializer(read_only=True, many=False)
     host = HostProfileSerializer(read_only=True, many=False)
-    # customer = serializers.SerializerMethodField()
-    # host = serializers.SerializerMethodField()
 
     class Meta:
         model = Accounts
@@ -284,18 +282,6 @@ class AccountSerializer(serializers.ModelSerializer):
             token = Token.objects.get(user=user)
             return token.key
         return None
-
-    # def get_customer(self, validated_data):
-    #     if not validated_data.is_host:
-    #         customer = Customer.objects.get(account__username=validated_data.username)
-    #         return CustomerProfileSerializer(instance=customer).data
-    #     return None
-
-    # def get_host(self, validated_data):
-    #     if validated_data.is_host:
-    #         host = Host.objects.get(account__username=validated_data.username)
-    #         return HostProfileSerializer(instance=host).data
-    #     return None
 
     def validate(self, attrs):
         """
