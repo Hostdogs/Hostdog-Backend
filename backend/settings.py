@@ -193,11 +193,12 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = "patpumhak@gmail.com"
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get("CLOUD_NAME"),
-    'API_KEY': os.environ.get("API_KEY"),
-    'API_SECRET': os.environ.get("API_SECRET"),
-}
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+if ON_HEROKU:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get("CLOUD_NAME"),
+        'API_KEY': os.environ.get("API_KEY"),
+        'API_SECRET': os.environ.get("API_SECRET"),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 django_heroku.settings(locals())

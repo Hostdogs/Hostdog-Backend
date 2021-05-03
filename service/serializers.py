@@ -39,6 +39,12 @@ class ServiceSerializer(serializers.ModelSerializer):
             "is_bath_dog",
             "service_bio",
         ]
+        extra_kwargs = {
+            "service_start_time": {"required": True},
+            "service_end_time": {"required": True},
+            "dog": {"required": True},
+            "host": {"required": True},
+        }
 
     def create(self, validated_data):
         customer = Customer.objects.get(account=self.context["request"].user)
