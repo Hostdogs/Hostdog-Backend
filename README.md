@@ -4,13 +4,11 @@
 
 ## Requirements
 - PostgreSQL
+
 สร้าง new database ชื่อ Hostdog
 
-![Imgur](https://i.imgur.com/AYLNLZJ.png)
-
 - Redis 
-
-![Imgur](https://i.imgur.com/467bHiT.png)
+- Python3
 ## Setup
 เริ่มจากการ clone repository นี้ก่อน
 ```sh
