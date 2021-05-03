@@ -50,7 +50,7 @@ class PaymentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=["post"], detail=True, url_path="paylate", url_name="paylate")
-    def pay_late(self, request, pk=None):
+    def pay_late(self, request, pk=None,service_pk=None):
         serializer = PaymentAcceptSerializer(data=request.data)
         if serializer.is_valid():
             payment = self.get_object()
@@ -58,7 +58,7 @@ class PaymentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             payment.pay_date = localtime()
             payment.save()
             return Response(
-                {"status": "success", "message": "Pay Deposit Accept Completed"},
+                {"status": "success", "message": "Pay Late Accept Completed"},
                 status=status.HTTP_200_OK,
             )
         else:
