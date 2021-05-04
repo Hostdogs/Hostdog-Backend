@@ -75,7 +75,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://hostdog.netlify.app/"
+    "https://hostdog.netlify.app"
 ]
 
 ROOT_URLCONF = "backend.urls"
