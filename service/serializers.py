@@ -171,6 +171,12 @@ class ServiceDetailSerializer(ServiceSerializer):
             "service_get_time",
             "main_status",
             "servicepayments",
+            "days_late",
+            "is_review",
+            "is_customer_receive_dog",
+            "rating",
+            "created_deposit_payment",
+            "created_late_payment",
             "total_price",
         ]
         read_only_fields = [
@@ -196,6 +202,7 @@ class ServiceDetailSerializer(ServiceSerializer):
             "is_customer_receive_dog",
             "created_deposit_payment",
             "created_late_payment",
+            "rating",
             "total_price",
             "main_status",
         ]
