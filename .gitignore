@@ -8,3 +8,7 @@ staticfiles
 .env
 htmlcov/
 .coverage
+*.jpeg
+*.jpg
+*.png
+paphankorn/

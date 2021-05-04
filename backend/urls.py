@@ -20,6 +20,8 @@ from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.schemas import get_schema_view
 from rest_framework.documentation import include_docs_urls
+from django.conf.urls.static import static
+from django.conf import settings
 
 
 urlpatterns = [
@@ -35,4 +37,5 @@ urlpatterns = [
     path("", include_docs_urls(title="Hostdog-API")),
     path('api/service/', include('service.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+print(f"URL patterns size at core backend : {len(urlpatterns)}")

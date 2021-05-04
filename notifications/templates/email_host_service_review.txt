@@ -1,0 +1,3 @@
+สวัสดี {{host_first_name|safe}} {{host_last_name|safe}}
+{{customer_first_name|safe}} {{customer_last_name|safe}} ได้ให้คะแนนการบริการของคุณ : {{score|safe}}/5.0 คะแนน
+ตรวจสอบได้ที่เว็บไซต์ Hostdog

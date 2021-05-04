@@ -1,11 +1,25 @@
 from accounts.serializers import (
     AccountSerializer,
     CustomerProfileSerializer,
+    DogProfileWithNestedSerializer,
+    HostAvailableDateSerializer,
+    HostAvailableDateWithNestedSerializer,
     HostProfileSerializer,
     DogProfileSerializer,
     ChangePasswordSerializer,
+    DogFeedingTimeSerializer,
+    HouseImagesSerializer,
 )
-from accounts.models import Accounts, Customer, Host, Dog
+from accounts.models import (
+    Accounts,
+    Customer,
+    Host,
+    Dog,
+    HostAvailableDate,
+    DogFeedingTime,
+    HouseImages,
+)
+
 from rest_framework import generics, viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -17,9 +31,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import (
     IsAuthenticated,
     BasePermission,
-    IsAdminUser,
     SAFE_METHODS,
 )
+from datetime import date
+from django.utils.timezone import localtime, datetime, timedelta
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -40,72 +55,93 @@ class IsOwnerOrAdmin(BasePermission):
         return user and user.is_authenticated and (user.is_staff or obj == user)
 
 
-class IsDogOwnerOrReadOnly(BasePermission):
+class DogOwnerPermission(BasePermission):
     """
     - Allow only dog owner to update or partial-update their dog
     - Only dog owner can create their dog on their profile
-    - Anonymous user not allow
     - Allow to  read-only if not owner of the dog
     """
 
-    message = "Permission failed!"
-
     def has_permission(self, request, view):
-        print(view.action, "Dog")
-        if not request.user.is_authenticated:
-            return False
-        if request.method in SAFE_METHODS:
-            return True
         if view.action == "create":
-            parent_lookup_customer = view.kwargs.get("parent_lookup_customer")
+            parent_lookup_customer = view.kwargs.get("customer_pk")
             if (
                 parent_lookup_customer is not None
-                and int(parent_lookup_customer) != request.user.id
+                and Accounts.objects.get(id=parent_lookup_customer) != request.user
             ):
                 return False
-            return int(request.data.get("customer")) == request.user.id
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        if view.action in {"update", "partial_update"}:
-            customer = int(request.data.get("customer"))
-            if customer is not None and customer != obj.customer.account.id:
-                return False
         return obj.customer.account == request.user
 
 
-class IsProfileOwnerOrReadOnly(BasePermission):
+class OwnProfilePermission(BasePermission):
     """
+    Object-level permission to only allow updating his own profile
     - Anyone who authenticated can see other profile
     - Only profile owner can update, partial-update their profile
     - Profile cant create (Created when account was create)
     """
-    message = "Permission failed!"
 
-    def has_permission(self, request, view):
-        print(view.action, "Profile")
-        if not request.user.is_authenticated:
-            return False
+    def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
+        return obj.account == request.user
+
+
+class AvailableDateOwnPermission(BasePermission):
+    """
+    Allow only profile owner to edit their own available date
+    - Anyone who authenticated can see this available date
+    """
+
+    def has_permission(self, request, view):
+        if view.action == "create":
+            parent_lookup_host = view.kwargs.get("host_pk")
+            if (
+                parent_lookup_host is not None
+                and Accounts.objects.get(id=parent_lookup_host) != request.user
+            ):
+                return False
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        if view.action in {"update", "partial_update"}:
-            account = request.data.get("account")
-            if account is not None and int(account) != obj.account.id:
-                return False
-        return obj.account == request.user
+        return obj.host.account == request.user
+
+
+class DogFeedingTimePermission(BasePermission):
+    """
+    เฉพาะเจ้าของหมาที่สามารถแก้ไขเวลาอาหารที่หมากินได้
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.dog.customer.account == request.user
+
+
+class HouseImagePermission(BasePermission):
+    """
+    เฉพาะเจ้าของรูปบ้านถึงจะแก้ไขรูปบ้านได้
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.host.account == request.user
+
 
 class AccountsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for query account
     """
 
+    authentication_classes = [TokenAuthentication]
     queryset = Accounts.objects.all()
     serializer_class = AccountSerializer
     http_method_names = ["get", "post", "delete", "head", "options"]
@@ -138,11 +174,15 @@ class AccountsViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):
-        if self.action in {"list", "update", "partial_update"}:
-            self.permission_classes = [IsAdminUser]
-        elif self.action in {"retrieve", "destroy", "set_password"}:
+        if self.action in {"update", "partial_update", "destroy", "set_password"}:
             self.permission_classes = [IsOwnerOrAdmin]
+        elif self.action in {
+            "list",
+            "retrieve",
+        }:
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
+
 
 class AuthToken(ObtainAuthToken):
     """
@@ -156,6 +196,8 @@ class AuthToken(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         token, created = Token.objects.get_or_create(user=user)
+        user.last_login = localtime()
+        user.save()
         return Response(
             {
                 "token": token.key,
@@ -171,18 +213,35 @@ class DogProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     API endpoint for query dog
     """
 
-    permission_classes = [IsDogOwnerOrReadOnly]
+    permission_classes = [DogOwnerPermission & IsAuthenticated]
     queryset = Dog.objects.all()
     serializer_class = DogProfileSerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [r"^dog_name", r"^dog_breed"]
-    filterset_fields = ["dog_status", "dog_breed", "dog_weight", "dog_status", "gender"]
+    filterset_fields = ["dog_status", "dog_breed", "dog_weight", "gender"]
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        parent_lookup = self.kwargs.get("customer_pk")
+        if parent_lookup:
+            serializer_class = DogProfileWithNestedSerializer
+        else:
+            serializer_class = DogProfileSerializer
+        return serializer_class
+    
+    def get_queryset(self):
+        queryset = Dog.objects.all()
+        customer_pk = self.kwargs.get("customer_pk")
+        if customer_pk:
+            queryset = queryset.filter(customer=customer_pk)
+        return queryset
 
 class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query customer
     """
-    permission_classes = [IsProfileOwnerOrReadOnly]
+
+    permission_classes = [OwnProfilePermission & IsAuthenticated]
     queryset = Customer.objects.all()
     serializer_class = CustomerProfileSerializer
     http_method_names = ["get", "put", "patch", "head", "options"]
@@ -190,15 +249,133 @@ class CustomerProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = [r"^first_name", r"^last_name"]
     filterset_fields = ["customer_dog_count"]
 
-class HostProfileViewSet(viewsets.ModelViewSet):
+
+class HostProfileViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for query host
     """
 
-    permission_classes = [IsProfileOwnerOrReadOnly]
-    queryset = Host.objects.all()
+    permission_classes = [OwnProfilePermission & IsAuthenticated]
+    queryset = Host.nearest_host.all()
     serializer_class = HostProfileSerializer
-    http_method_names = ("get", "put", "patch", "head", "options")
-    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    search_fields = (r"^first_name", r"^last_name")
-    filterset_fields = ("host_rating", "host_area", "host_schedule")
+    http_method_names = ["get", "put", "patch", "head", "options"]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [r"^first_name", r"^last_name"]
+    filterset_fields = ["host_rating", "host_area"]
+
+    def get_queryset(self):
+        dist = self.request.query_params.get("distance")
+        weekday = self.request.query_params.getlist("weekday")
+        exact_date = self.request.query_params.getlist("date")
+        date_range = self.request.query_params.getlist("date_range")
+        date_full_range = self.request.query_params.getlist("date_full_range")
+        area_range = self.request.query_params.getlist("area_range")
+        lat = self.request.query_params.get("latitude")
+        long = self.request.query_params.get("longitude")
+        all_host = self.request.query_params.get("all")
+        if all_host:
+            return Host.objects.all()
+        queryset = Host.nearest_host.filter(
+            host_available_date__date__isnull=False
+        ).distinct()
+        # print(dist, weekday, exact_date, date_range, area_range)
+        # print(queryset)
+        print(f"TYPE!!!!! {type(lat)} {type(long)} {type(dist)}")
+        if dist and lat and long:
+            customer = Customer.objects.get(account=self.request.user)
+            queryset = queryset.nearest_host_within_x_km(
+                current_lat=float(lat), current_long=float(long), x_km=dist
+            )
+        if weekday:
+            queryset = queryset.filter(
+                host_available_date__date__iso_week_day__in=weekday
+            )
+        if exact_date:
+            queryset = queryset.filter(host_available_date__date__in=date)
+        if len(date_full_range) >= 2:
+            start_date_string, end_date_string = date_full_range[:2]
+            start_date = datetime.strptime(start_date_string, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_string, "%Y-%m-%d").date()
+            delta = end_date - start_date
+            all_date_within_interval = [
+                start_date + timedelta(days=i) for i in range(delta.days + 1)
+            ]
+            for wanted_date in all_date_within_interval:
+                queryset = queryset.filter(host_available_date__date=wanted_date)
+        if len(date_range) >= 2:
+            date_range_interval = date_range[:2]
+            queryset = queryset.filter(
+                host_available_date__date__range=date_range_interval
+            )
+        if len(area_range) >= 2:
+            area_range_interval = area_range[:2]
+            queryset = queryset.filter(
+                host_area__range=area_range_interval
+            )
+        return queryset
+
+
+class HostAvailableDateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for manage host avalilable date
+    """
+
+    permission_classes = [AvailableDateOwnPermission & IsAuthenticated]
+    queryset = HostAvailableDate.objects.all()
+    serializer_class = HostAvailableDateSerializer
+    http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [r"^date"]
+    filterset_fields = ["date"]
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        parent_lookup = self.kwargs.get("host_pk")
+        if parent_lookup:
+            serializer_class = HostAvailableDateWithNestedSerializer
+        else:
+            serializer_class = HostAvailableDateSerializer
+        return serializer_class
+
+    def get_queryset(self):
+        queryset = HostAvailableDate.objects.all()
+        host_pk = self.kwargs.get("host_pk")
+        if host_pk:
+            queryset = queryset.filter(host=host_pk)
+        return queryset
+
+
+class DogFeedingTimeViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for dog feeding time
+        TODO:
+            - Permission
+    """
+
+    permission_classes = [DogFeedingTimePermission & IsAuthenticated]
+    queryset = DogFeedingTime.objects.all()
+    serializer_class = DogFeedingTimeSerializer
+
+    def get_queryset(self):
+        queryset = DogFeedingTime.objects.all()
+        dog_pk = self.kwargs.get("dog_pk")
+        if dog_pk:
+            queryset = queryset.filter(dog=dog_pk)
+        return queryset
+
+
+class HostHouseImageViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for manageing Host's house image
+    """
+
+    permission_classes = [HouseImagePermission & IsAuthenticated]
+    queryset = HouseImages.objects.all()
+    serializer_class = HouseImagesSerializer
+
+    def get_queryset(self):
+        queryset = HouseImages.objects.all()
+        host_pk = self.kwargs.get("host_pk")
+        if host_pk:
+            queryset = queryset.filter(host=host_pk)
+        return queryset

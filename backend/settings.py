@@ -51,7 +51,16 @@ INSTALLED_APPS = [
     "corsheaders",
     "accounts",
     "service",
+    "notifications",
+    "django_celery_beat",
+    "django_celery_results",
+    "payment",
+    "cloudinary_storage",
+    "cloudinary"
 ]
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -113,6 +122,9 @@ else:
             "PASSWORD": str(os.getenv("PASSWORD")),
             "HOST": "127.0.0.1",
             "PORT": "5432",
+            "TEST": {
+                "NAME": "TestDataBase"
+            }
         }
     }
 
@@ -140,7 +152,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+#TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Bangkok"
 
 USE_I18N = True
 
@@ -169,5 +182,23 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
 }
+
+CELERY_RESULT_BACKEND = "django-db"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER = "patpumhak@gmail.com"
+EMAIL_HOST_PASSWORD = "isuybgkqbaalujaf"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "patpumhak@gmail.com"
+
+if ON_HEROKU:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get("CLOUD_NAME"),
+        'API_KEY': os.environ.get("API_KEY"),
+        'API_SECRET': os.environ.get("API_SECRET"),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 django_heroku.settings(locals())

@@ -1,0 +1,4 @@
+สวัสดี {{customer_first_name|safe}} {{customer_last_name|safe}}
+เวลาบริการของคุณคือ {{start_date|safe}} ถึง {{end_date|safe}}
+ราคาบริการของคุณ {{price|safe}} บาท
+ตรวจสอบได้ที่เว็บไซต์ Hostdog

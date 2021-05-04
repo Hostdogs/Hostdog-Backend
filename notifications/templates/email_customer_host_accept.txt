@@ -1,0 +1,3 @@
+สวัสดี {{customer_first_name|safe}} {{customer_last_name|safe}}
+ผู้รับฝากสุนัข {{host_first_name}} {{host_last_name|safe}}  ได้{% if accept %}ยืนยัน{% else %}ปฏิเสธ{% endif %}คำขอของคุณ
+ตรวจสอบได้ที่เว็บไซต์ Hostdog
