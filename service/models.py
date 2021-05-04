@@ -287,6 +287,7 @@ class Services(models.Model):
                 self.host.save()
                 self.dog.save()
                 self.save()
+                return True
         return False
 
     def cancel(self):
