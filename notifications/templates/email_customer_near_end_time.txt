@@ -1,3 +1,3 @@
-Hello {{customer_first_name|safe}} {{customer_last_name|safe}}
-Your service end time is {{endtime|safe}}
-Come and get your dog at {{host_first_name|safe}} {{host_last_name|safe}} house.
+สวัสดี {{customer_first_name|safe}} {{customer_last_name|safe}}
+เวลาสิ้นสุดบริการของคุณคือ {{endtime|safe}}
+มารับหมาของคุณที่บ้านของผู้รับฝากสุนัข {{host_first_name|safe}} {{host_last_name|safe}}

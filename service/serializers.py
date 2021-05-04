@@ -29,7 +29,6 @@ class ServiceSerializer(serializers.ModelSerializer):
             "id",
             "host",
             "dog",
-            "service_is_over_night",
             "service_start_time",
             "service_end_time",
             "service_meal_type",
@@ -40,6 +39,12 @@ class ServiceSerializer(serializers.ModelSerializer):
             "is_bath_dog",
             "service_bio",
         ]
+        extra_kwargs = {
+            "service_start_time": {"required": True},
+            "service_end_time": {"required": True},
+            "dog": {"required": True},
+            "host": {"required": True},
+        }
 
     def create(self, validated_data):
         customer = Customer.objects.get(account=self.context["request"].user)
@@ -161,10 +166,17 @@ class ServiceDetailSerializer(ServiceSerializer):
             "customer",
             "service_status",
             "service_create_time",
+            "service_reply_time",
             "service_send_time",
             "service_get_time",
             "main_status",
             "servicepayments",
+            "days_late",
+            "is_review",
+            "is_customer_receive_dog",
+            "rating",
+            "created_deposit_payment",
+            "created_late_payment",
             "total_price",
         ]
         read_only_fields = [
@@ -172,8 +184,8 @@ class ServiceDetailSerializer(ServiceSerializer):
             "customer",
             "dog",
             "service_status",
-            "service_is_over_night",
             "service_create_time",
+            "service_reply_time",
             "service_start_time",
             "service_end_time",
             "service_send_time",
@@ -190,6 +202,7 @@ class ServiceDetailSerializer(ServiceSerializer):
             "is_customer_receive_dog",
             "created_deposit_payment",
             "created_late_payment",
+            "rating",
             "total_price",
             "main_status",
         ]

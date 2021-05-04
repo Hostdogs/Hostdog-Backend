@@ -16,10 +16,11 @@ class Meal(models.Model):
         - food for dog to eat
         - can add later in production
         - can adjust the price in production
+        - Meal price per 100 g
     """
 
     meal_type = models.CharField(max_length=50)
-    meal_price_per_gram = models.FloatField()
+    meal_price_per_gram = models.FloatField() # Per 100 g
 
     def __str__(self):
         return f"Meals : {self.meal_type}\nPrice : {self.meal_price_per_gram} Baht"
@@ -94,8 +95,8 @@ class Services(models.Model):
     )
     dog = models.ForeignKey(Dog, on_delete=models.CASCADE, related_name="service_dog")
     service_status = models.CharField(max_length=40, choices=STATUS)
-    service_is_over_night = models.BooleanField(default=False)
     service_create_time = models.DateTimeField(auto_now_add=True)
+    service_reply_time = models.DateTimeField(blank=True, null=True)
     service_start_time = models.DateTimeField()
     service_end_time = models.DateTimeField()
     service_send_time = models.DateTimeField(blank=True, null=True)
@@ -111,7 +112,7 @@ class Services(models.Model):
     additional_service = models.ForeignKey(
         HostService, on_delete=models.CASCADE, related_name="additional_service"
     )
-    service_bio = models.TextField(max_length=255, default="")
+    service_bio = models.TextField(max_length=255, default="", blank=True)
     created_deposit_payment = models.BooleanField(default=False)
     created_late_payment = models.BooleanField(default=False)
     days_late = models.IntegerField(default=0)
@@ -121,10 +122,9 @@ class Services(models.Model):
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
-    total_price = models.IntegerField(null=True)
+    total_price = models.FloatField(null=True)
 
     def calculate_price(self):
-        host_service_instance = self.additional_service
         dog_feeding_time_object = DogFeedingTime.objects.filter(dog=self.dog)
         service_delta = (
             localtime(self.service_end_time).date()
@@ -147,26 +147,29 @@ class Services(models.Model):
                 ):
                     meal_per_service += 1
 
-        total_meal_price = meal_per_service * meal_price_per_gram * meal_weight
+        total_meal_price = meal_per_service * meal_price_per_gram * meal_weight / 100
         days_for_deposit = len(all_date_within_interval)
 
         total_price = (
-            host_service_instance.deposit_price * days_for_deposit
+            self.additional_service.deposit_price * days_for_deposit
         ) + total_meal_price
 
         host_service_price = [
-            host_service_instance.price_dog_walk,
-            host_service_instance.price_get_dog,
-            host_service_instance.price_deliver_dog,
-            host_service_instance.price_bath_dog,
+            self.additional_service.price_dog_walk,
+            self.additional_service.price_get_dog,
+            self.additional_service.price_deliver_dog,
+            self.additional_service.price_bath_dog,
         ]
 
         enable_service = [
-            host_service_instance.enable_dog_walk,
-            host_service_instance.enable_get_dog,
-            host_service_instance.enable_delivery_dog,
-            host_service_instance.enable_bath_dog,
+            self.is_dog_walk,
+            self.is_get_dog,
+            self.is_delivery_dog,
+            self.is_bath_dog,
+
         ]
+        print("enable_service");
+        print(enable_service);
         for i in range(len(enable_service)):
             if enable_service[i]:
                 total_price += host_service_price[i]
@@ -191,6 +194,7 @@ class Services(models.Model):
                 True,
             )
             self.main_status = "wait_for_progress"
+            self.service_reply_time = localtime()
             date_range = (
                 localtime(self.service_start_time).date(),
                 localtime(self.service_end_time).date(),
@@ -221,6 +225,7 @@ class Services(models.Model):
                 False,
             )
             self.main_status = "cancelled"
+            self.service_reply_time = localtime()
             self.save()
             return True
         return False
@@ -282,6 +287,7 @@ class Services(models.Model):
                 self.host.save()
                 self.dog.save()
                 self.save()
+                return True
         return False
 
     def cancel(self):
@@ -313,7 +319,7 @@ class Services(models.Model):
         Customer สามารถรีวิวบริการได้
         """
         # แจ้งเตือน Host ถึงคะแนน Review
-        if self.main_status == "end":
+        if self.main_status == "end" and not self.is_review:
             email = self.host.account.email
             send_email_host_service_review_task(
                 email,
@@ -345,9 +351,9 @@ class Services(models.Model):
     def __str__(self):
         return (
             f"Service by {self.host}\n"
-            + "Customer : {self.customer}\n"
-            + "Dog : {self.dog}\n"
-            + "Status : {self.service_status}\n"
-            + "Main status : {self.main_status}\n"
-            + "Additional service : {self.additional_service}"
+            + f"Customer : {self.customer}\n"
+            + f"Dog : {self.dog}\n"
+            + f"Status : {self.service_status}\n"
+            + f"Main status : {self.main_status}\n"
+            + f"Additional service : {self.additional_service}"
         )

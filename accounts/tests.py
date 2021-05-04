@@ -111,8 +111,6 @@ class TestModel(TestCase):
         cls.host_001.host_bio ="host_bio"
         cls.host_001.host_rating = 4.5
         cls.host_001.host_hosted_count = 10
-        cls.host_001.host_max = 3
-        cls.host_001.host_available = 1
         cls.host_001.host_area = 100
         cls.host_001.address = "address"
         cls.host_001.mobile = "0812345678"
@@ -191,8 +189,6 @@ class TestModel(TestCase):
         host_bio = f'{host.host_bio}'
         host_rating = host.host_rating
         host_hosted_count = host.host_hosted_count
-        host_max = host.host_max
-        host_available = host.host_available
         host_area = host.host_area
         address = f'{host.address}'
         mobile = f'{host.mobile}'
@@ -208,8 +204,6 @@ class TestModel(TestCase):
         self.assertEqual(host_bio,'host_bio')
         self.assertEqual(host_rating,4.5)
         self.assertEqual(host_hosted_count,10)
-        self.assertEqual(host_max,3)
-        self.assertEqual(host_available,1)
         self.assertEqual(host_area,100)
         self.assertEqual(address,'address')
         self.assertEqual(mobile,'0812345678')
@@ -396,7 +390,6 @@ class TestAPI(APITestCase):
             "host_bio":'host_bio',
             "host_rating":4.53,
             "host_hosted_count":10,
-            "host_max":9,
             "host_area":20.5,
             "address":'address',
             "mobile":'0812345678',

@@ -115,6 +115,7 @@ def notify_near_end_service(before_hour):
         )
     return f"Service that near end : {service_that_near_end.count()}"
 
+
 @task(name="service_not_pay_in_service_time")
 def cancel_that_service():
     """
@@ -128,4 +129,16 @@ def cancel_that_service():
         payment=Payments.objects.get(service=service,type_payment="deposit")
         if not payment.is_paid and localtime()-service.service_start_time > timedelta(hours=1)  :
             service.cancel()
-    return f"payment service: {service_objects}"
+    return f"payment service: {service_objects.count()}"
+
+
+@task(name="service_host_not_response_in_time")
+def delete_service_host_not_response_in_time():
+    """
+    Task นี้มีไว้ลบ service ที่ถึงเวลาบริการแล้วแต่ host ไม่ตอบรับ
+
+    schedule : ทำการรัน Task นี้ ทุก 1 นาที
+    """
+    error_service = Services.objects.filter(main_status="pending", service_start_time__lte=localtime())
+    error_service.delete()
+    return f"Delete error service : {error_service.count()}"

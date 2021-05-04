@@ -20,6 +20,7 @@ class DogFeedingTimeSerializer(serializers.ModelSerializer):
     """
     Serializer for dog feeding time model
     """
+
     class Meta:
         model = DogFeedingTime
         fields = ["id", "dog", "time"]
@@ -37,6 +38,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
     Serializer for dog model
         - use with dog view with not nested resource
     """
+
     dog_feeding_time = DogFeedingTimeSerializer(many=True, read_only=True)
 
     class Meta:
@@ -53,7 +55,7 @@ class DogProfileSerializer(serializers.ModelSerializer):
             "dog_weight",
             "dog_bio",
             "dog_create_date",
-            "dog_feeding_time"
+            "dog_feeding_time",
         ]
         read_only_fields = ["dog_status"]
         extra_kwargs = {
@@ -78,8 +80,10 @@ class DogProfileWithNestedSerializer(DogProfileSerializer):
 
     class Meta(DogProfileSerializer.Meta):
         fields = DogProfileSerializer.Meta.fields
-        read_only_fields = DogProfileSerializer.Meta.read_only_fields + \
-            ["customer", "dog_create_date"]
+        read_only_fields = DogProfileSerializer.Meta.read_only_fields + [
+            "customer",
+            "dog_create_date",
+        ]
 
     def create(self, validated_data):
         customer = Customer.objects.get(account=self.context["request"].user)
@@ -125,15 +129,12 @@ class HostAvailableDateSerializer(serializers.ModelSerializer):
         min_time = datetime.min.time()
         in_progess_service = Services.objects.filter(
             host=host,
-            service_start_time__lte=make_aware(
-                datetime.combine(value, min_time)),
-            service_end_time__gte=make_aware(
-                datetime.combine(value, min_time)),
+            service_start_time__lte=make_aware(datetime.combine(value, min_time)),
+            service_end_time__gte=make_aware(datetime.combine(value, min_time)),
             main_status__in=["in_progress", "wait_for_progress", "payment"],
         )
         if in_progess_service.exists():
-            raise serializers.ValidationError(
-                "This date in in your service date")
+            raise serializers.ValidationError("This date in in your service date")
 
         return value
 
@@ -177,8 +178,7 @@ class HostProfileSerializer(serializers.ModelSerializer):
     Serializer for host model
     """
 
-    host_available_date = HostAvailableDateSerializer(
-        read_only=True, many=True)
+    host_available_date = HostAvailableDateSerializer(read_only=True, many=True)
     house_image = HouseImagesSerializer(read_only=True, many=True)
     distance = serializers.SerializerMethodField()
 
@@ -193,7 +193,6 @@ class HostProfileSerializer(serializers.ModelSerializer):
             "host_bio",
             "host_rating",
             "host_hosted_count",
-            "host_max",
             "host_available_date",
             "host_area",
             "address",
@@ -241,8 +240,11 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             "longitude",
             "dog_customer",
         ]
-        read_only_fields = ["account",
-                            "customer_dog_count", "customer_hosted_count", ]
+        read_only_fields = [
+            "account",
+            "customer_dog_count",
+            "customer_hosted_count",
+        ]
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -251,15 +253,25 @@ class AccountSerializer(serializers.ModelSerializer):
     """
 
     token = serializers.SerializerMethodField()
-    customer = serializers.SerializerMethodField()
-    host = serializers.SerializerMethodField()
+    customer = CustomerProfileSerializer(read_only=True, many=False)
+    host = HostProfileSerializer(read_only=True, many=False)
 
     class Meta:
         model = Accounts
-        fields = ["id", "is_host", "username", "email", "password", "last_login",
-                  "account_number",  "date_joined", "token", "customer", "host"]
-        read_only_fields = ["last_login",
-                            "date_joined", "token", "customer", "host"]
+        fields = [
+            "id",
+            "is_host",
+            "username",
+            "email",
+            "password",
+            "last_login",
+            "account_number",
+            "date_joined",
+            "token",
+            "customer",
+            "host",
+        ]
+        read_only_fields = ["last_login", "date_joined", "token", "customer", "host"]
         extra_kwargs = {
             "password": {"write_only": True},
         }
@@ -269,19 +281,6 @@ class AccountSerializer(serializers.ModelSerializer):
             user = Accounts.objects.get(username=validated_data.username)
             token = Token.objects.get(user=user)
             return token.key
-        return None
-
-    def get_customer(self, validated_data):
-        if not validated_data.is_host:
-            customer = Customer.objects.get(
-                account__username=validated_data.username)
-            return CustomerProfileSerializer(instance=customer).data
-        return None
-
-    def get_host(self, validated_data):
-        if validated_data.is_host:
-            host = Host.objects.get(account__username=validated_data.username)
-            return HostProfileSerializer(instance=host).data
         return None
 
     def validate(self, attrs):

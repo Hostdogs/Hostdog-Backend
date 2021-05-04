@@ -78,8 +78,6 @@ class Model_Testing(TestCase):
             host_bio="host_bio",
             host_rating=4.5,
             host_hosted_count=10,
-            host_max=3,
-            host_avaliable=1,
             host_area=100,
             address="address",
             mobile="0812345678",

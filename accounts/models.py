@@ -71,7 +71,7 @@ class Host(models.Model):
         Accounts,
         on_delete=models.CASCADE,
         primary_key=True,
-        related_name="host_account",
+        related_name="host",
     )
     picture = models.ImageField(
         verbose_name=_("Host's image"), upload_to=path_and_rename, blank=True
@@ -84,8 +84,6 @@ class Host(models.Model):
     host_bio = models.TextField(max_length=100, blank=True)
     host_rating = models.FloatField(default=0.0)
     host_hosted_count = models.IntegerField(default=0)
-    host_max = models.IntegerField(default=0)
-    host_avaliable = models.IntegerField(default=0)
     host_area = models.FloatField(default=0.0)
     address = models.CharField(max_length=255, blank=True)
     mobile = models.CharField(max_length=10, blank=True)
@@ -118,7 +116,7 @@ class Customer(models.Model):
         Accounts,
         on_delete=models.CASCADE,
         primary_key=True,
-        related_name="customer_account",
+        related_name="customer",
     )
     picture = models.ImageField(
         verbose_name=_("Customer's image"), upload_to=path_and_rename, blank=True

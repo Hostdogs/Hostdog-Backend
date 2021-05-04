@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_celery_results",
     "payment",
+    "cloudinary_storage",
+    "cloudinary"
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -190,5 +192,13 @@ EMAIL_HOST_PASSWORD = "isuybgkqbaalujaf"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = "patpumhak@gmail.com"
+
+if ON_HEROKU:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get("CLOUD_NAME"),
+        'API_KEY': os.environ.get("API_KEY"),
+        'API_SECRET': os.environ.get("API_SECRET"),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 django_heroku.settings(locals())
