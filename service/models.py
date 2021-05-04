@@ -16,10 +16,11 @@ class Meal(models.Model):
         - food for dog to eat
         - can add later in production
         - can adjust the price in production
+        - Meal price per 100 g
     """
 
     meal_type = models.CharField(max_length=50)
-    meal_price_per_gram = models.FloatField()
+    meal_price_per_gram = models.FloatField() # Per 100 g
 
     def __str__(self):
         return f"Meals : {self.meal_type}\nPrice : {self.meal_price_per_gram} Baht"
@@ -121,7 +122,7 @@ class Services(models.Model):
     main_status = models.CharField(
         max_length=20, choices=MAIN_STATUS, default="pending"
     )
-    total_price = models.IntegerField(null=True)
+    total_price = models.FloatField(null=True)
 
     def calculate_price(self):
         dog_feeding_time_object = DogFeedingTime.objects.filter(dog=self.dog)
@@ -146,7 +147,7 @@ class Services(models.Model):
                 ):
                     meal_per_service += 1
 
-        total_meal_price = meal_per_service * meal_price_per_gram * meal_weight
+        total_meal_price = meal_per_service * meal_price_per_gram * meal_weight / 100
         days_for_deposit = len(all_date_within_interval)
 
         total_price = (
