@@ -9,34 +9,32 @@
 - Python3
 - Django 3.2
 ## Setup
-เริ่มจากการ clone repository นี้ก่อน
+clone repository
 ```sh
 $ git clone https://github.com/Hostdogs/Hostdog-Backend.git
 $ cd Hostdog-Backend
 ```
-ติดตั้ง virtual environment
+virtual environment
 ```sh
 $ pip install virtualenv
 ```
-ทำการสร้าง virtual environment เพื่อติดตั้ง dependencies แล้ว Activate
 ```sh
 $ virtualenv <name>
 $ source <name>/Scripts/activate
 ```
-ติดตั้ง dependencies
+dependencies
 ```sh
 (venv)$ pip install -r requirements.txt
 ```
-สร้างไฟล์ .env
+.env
 ```
 SECRET_KEY={your_secret_key}
 PASSWORD={your_postgreSQL_password)
 ```
-หลังจากนั้น
+test
 ```sh
 (venv)$ py manage.py runserver
 ```
-สามาารถเข้าไปทดสอบได้ที่ ``` http://127.0.0.1:8000 ```
 
 ## Celery
 ### Worker
