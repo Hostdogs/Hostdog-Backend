@@ -125,22 +125,22 @@ class ServiceSerializer(serializers.ModelSerializer):
                     }
                 )
 
-        # service_that_customer_register = Services.objects.filter(
-        #     host=host, customer=customer
-        # ).exclude(main_status="cancelled")
-        # for service in service_that_customer_register:
-        #     start_time = localtime(service.service_start_time)
-        #     end_time = localtime(service.service_end_time)
-        #     if (
-        #         start_time <= service_start_time <= end_time
-        #         or service_start_time <= start_time <= service_end_time
-        #     ):
-        #         raise serializers.ValidationError(
-        #             {
-        #                 "service_start_time": ["Bad value : You already register to this service"],
-        #                 "service_end_time": ["Bad value : You already register to this service"],
-        #             }
-        #         )
+        service_that_customer_register = Services.objects.filter(
+            host=host, customer=customer
+        ).exclude(main_status="cancelled")
+        for service in service_that_customer_register:
+            start_time = localtime(service.service_start_time)
+            end_time = localtime(service.service_end_time)
+            if (
+                start_time <= service_start_time <= end_time
+                or service_start_time <= start_time <= service_end_time
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "service_start_time": ["Bad value : You already register to this service"],
+                        "service_end_time": ["Bad value : You already register to this service"],
+                    }
+                )
 
         meal_that_host_have = host_service.available_meals.all()
         if service_meal_type not in meal_that_host_have:
