@@ -46,8 +46,7 @@ class PaymentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 {"status": "success", "message": "Pay Deposit Accept Completed"},
                 status=status.HTTP_200_OK,
             )
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=["post"], detail=True, url_path="paylate", url_name="paylate")
     def pay_late(self, request, pk=None,service_pk=None):
@@ -61,5 +60,4 @@ class PaymentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 {"status": "success", "message": "Pay Late Accept Completed"},
                 status=status.HTTP_200_OK,
             )
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

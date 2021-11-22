@@ -274,7 +274,7 @@ class Services(models.Model):
             self.dog.save()
             self.save()
             return True
-        elif self.main_status == "late":
+        if self.main_status == "late":
             late_payment = Payments.objects.get(service=self, type_payments="late")
             if late_payment.is_paid:
                 self.main_status = "end"

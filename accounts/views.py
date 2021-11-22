@@ -170,8 +170,7 @@ class AccountsViewSet(viewsets.ModelViewSet):
                 {"status": "success", "message": "Password updated successfully"},
                 status=status.HTTP_200_OK,
             )
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):
         if self.action in {"update", "partial_update", "destroy", "set_password"}:

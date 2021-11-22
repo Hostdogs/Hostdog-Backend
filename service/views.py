@@ -108,18 +108,17 @@ class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
                         return Response(
                             {"success": "Service accepted"}, status=status.HTTP_200_OK
                         )
-                    else:
-                        service.decline()
-                        return Response(
-                            {"success": "Service decline"}, status=status.HTTP_200_OK
-                        )
+                    service.decline()
+                    return Response(
+                        {"success": "Service decline"}, status=status.HTTP_200_OK
+                    )
                 elif service.main_status == "in_progress": 
                     if receive_dog: # Host ยืนยันการรับหมา
                         host_receive_dog_success = service.host_receive_dog()
                         response_data = {"success": "Host receive dog success"} if host_receive_dog_success else {"fail": "Can't receive dog"}
                         status_code = status.HTTP_200_OK if host_receive_dog_success else status.HTTP_400_BAD_REQUEST
                         return Response(response_data, status=status_code)
-                    elif return_dog: # Host ยืนยันการคืนหมา
+                    if return_dog: # Host ยืนยันการคืนหมา
                         return_dog_success = service.return_dog()
                         response_data = {"success": "Host return dog success"} if return_dog_success else {"fail": "Can't return dog"}
                         status_code = status.HTTP_200_OK if return_dog_success else status.HTTP_400_BAD_REQUEST
@@ -130,7 +129,7 @@ class ServiceViewSet(NestedViewSetMixin,viewsets.ModelViewSet):
                     response_data = {"success": "Service cancelled"} if cancel_success else {"fail": "Can't cancel service"}
                     status_code = status.HTTP_200_OK if cancel_success else status.HTTP_400_BAD_REQUEST
                     return Response(response_data, status=status_code)
-                elif service.main_status == "in_progress":  # กดรับหมา
+                if service.main_status == "in_progress":  # กดรับหมา
                     if receive_dog:
                         customer_receive_dog_success = service.customer_receive_dog()
                         response_data = {"success": "Customer receive dog success"} if customer_receive_dog_success else {"fail": "Customer fail to receive dog"}
